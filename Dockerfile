@@ -498,13 +498,11 @@ COPY --from=layer-99-minidlna "${PREFIX}/srv/." "${OUT}/srv"
 COPY --from=layer-99-minidlna "${PREFIX}/licenses/." "${OUT}/licenses"
 
 # Remove build only files from output
-RUN rm -rf "${OUT}/share" "${OUT}/lib/pkgconfig" "${OUT}/lib/cmake"
+RUN rm -rf "${OUT}/lib/pkgconfig" "${OUT}/lib/cmake"
 RUN find "${OUT}"  \( -name '*.def' -o -name '*.dll.a' \) -delete
 
-# Strip debug symbols and ensure any .so, .dll, .dylib has the execution flag set
-RUN --mount=type=cache,target=/root/.cache `
-	echo 'strip -S "$@" && chmod +x "$@"' >/srv/stage.sh `
-	&& find "$OUT" -type f \( -name '*.so' -o -name '*.so.*' -o -name '*.dll' -o -name '*.dylib' \) -exec /srv/build.sh {} +
+# Strip debug symbols from minidlna binary
+RUN strip -S "${OUT}/sbin/minidlna" && chmod +x "${OUT}/sbin/minidlna"
 
 # Remove non executable files from bin folder
 RUN if [ -d "${OUT}/bin" ]; then find "${OUT}/bin" -type f -not -executable -delete; fi
