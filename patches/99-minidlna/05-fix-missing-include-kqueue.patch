@@ -1,0 +1,12 @@
+diff --git a/kqueue.c b/kqueue.c
+index 35b3f2b..e92d0fe 100644
+--- a/kqueue.c
++++ b/kqueue.c
+@@ -27,6 +27,7 @@
+  */
+ 
+ #include <sys/types.h>
++#include <sys/time.h>
+ #include <sys/event.h>
+ #include <assert.h>
+ #include <errno.h>

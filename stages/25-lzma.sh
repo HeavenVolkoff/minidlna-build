@@ -45,9 +45,6 @@ ninja -j"$(nproc)" liblzma
 
 mkdir -p ../doc/examples
 case "$TARGET" in
-  *windows*)
-    touch xz.exe xzdec.exe lzmadec.exe lzmainfo.exe
-    ;;
   *)
     touch xz xzdec lzmadec lzmainfo
     ;;

@@ -2,38 +2,20 @@
 
 set -euo pipefail
 
-OS_IPHONE=${OS_IPHONE:-0}
-
 case "${TARGET:?TARGET envvar is required to be defined}" in
   x86_64-linux-musl | aarch64-linux-musl) ;;
   x86_64-linux-gnu* | aarch64-linux-gnu*)
     # Set the glibc minimum version, RHEL-7.9 and CentOS 7
     TARGET="${TARGET%%.*}.2.17"
     ;;
-  x86_64-linux-android | aarch64-linux-android)
-    export SDKROOT="${NDK_SDKROOT:?Missing ndk sysroot}"
-    ;;
   x86_64-darwin-apple | x86_64-apple-darwin-macho)
-    if [ "$OS_IPHONE" -eq 1 ]; then
-      export SDKROOT="${IOS_SDKROOT:?Missing iOS SDK}"
-    elif [ "$OS_IPHONE" -eq 2 ]; then
-      export SDKROOT="${IOS_SIMULATOR_SDKROOT:?Missing iOS simulator SDK}"
-    else
-      export SDKROOT="${MACOS_SDKROOT:?Missing macOS SDK}"
-    fi
+    export SDKROOT="${MACOS_SDKROOT:?Missing macOS SDK}"
     TARGET="x86_64-apple-darwin-macho"
     ;;
   aarch64-darwin-apple | arm64-apple-darwin-macho)
-    if [ "$OS_IPHONE" -eq 1 ]; then
-      export SDKROOT="${IOS_SDKROOT:?Missing iOS SDK}"
-    elif [ "$OS_IPHONE" -eq 2 ]; then
-      export SDKROOT="${IOS_SIMULATOR_SDKROOT:?Missing iOS simulator SDK}"
-    else
-      export SDKROOT="${MACOS_SDKROOT:?Missing macOS SDK}"
-    fi
+    export SDKROOT="${MACOS_SDKROOT:?Missing macOS SDK}"
     TARGET="arm64-apple-darwin-macho"
     ;;
-  x86_64-windows-gnu | aarch64-windows-gnu) ;;
   *)
     echo "Unsupported target: $TARGET" >&2
     exit 1
@@ -42,19 +24,19 @@ esac
 
 is_cpp=0
 case "$(basename "$0")" in
-  cc | android-gcc)
+  cc)
     case "$TARGET" in
-      *darwin* | *android*)
+      *darwin*)
         # Use clang instead of zig for darwin targets
         CMD='clang-17'
         ;;
       *) CMD='zig cc' ;;
     esac
     ;;
-  c++ | android-g++)
+  c++)
     is_cpp=1
     case "$TARGET" in
-      *darwin* | *android*)
+      *darwin*)
         # Use clang instead of zig for darwin targets
         CMD='clang++-17'
         ;;
@@ -77,7 +59,6 @@ l_args=()
 c_argv=('-target' "$TARGET")
 sysroot=''
 assembler=0
-os_iphone="${OS_IPHONE:-0}"
 preprocessor=0
 cpu_features=()
 assembler_file=0
@@ -177,12 +158,6 @@ while [ "$#" -gt 0 ]; do
           argv+=('-arch' 'arm64')
           shift 2
           continue
-        elif (case "$1" in -DTARGET_OS_IPHONE*) exit 0 ;; *) exit 1 ;; esac) then
-          if [ "$os_iphone" -lt 1 ]; then
-            os_iphone=1
-          fi
-        elif (case "$1" in -DTARGET_OS_SIMULATOR*) exit 0 ;; *) exit 1 ;; esac) then
-          os_iphone=2
         else
           argv+=("$1")
 
@@ -192,16 +167,6 @@ while [ "$#" -gt 0 ]; do
           elif [ "$1" = '-liconv' ] && [ "$should_add_libcharset" -eq 0 ]; then
             should_add_libcharset=1
           fi
-        fi
-        ;;
-      *windows*)
-        if (case "$1" in *.rlib | *libcompiler_builtins-*) exit 0 ;; *) exit 1 ;; esac) then
-          # compiler-builtins is duplicated with zig's compiler-rt
-          case "$CMD" in
-            clang*) argv+=("$1") ;;
-          esac
-        else
-          argv+=("$1")
         fi
         ;;
       *)
@@ -239,9 +204,6 @@ while [ "$#" -gt 0 ]; do
     case "$TARGET" in
       *linux*)
         exec zig ld.lld --help
-        ;;
-      *windows*)
-        exec zig lld-link -help
         ;;
       *darwin*)
         exec $CMD "${c_argv[@]}" -Wl,--help
@@ -376,6 +338,11 @@ for feature in "${cpu_features[@]}"; do
   features="${features}\n${feature}"
 done
 
+# Add dotprod for aarch64 if not present
+if [[ "$TARGET" == *aarch64* ]] && ! [[ "$features" == *"+dotprod"* ]]; then
+  features="${features}\ndotprod"
+fi
+
 if [ -n "$features" ]; then
   features="$(printf "$features" | awk '!NF || !seen[$0]++' | xargs -r printf '+%s')"
 fi
@@ -390,10 +357,10 @@ case "${TARGET:-}" in
       *)
         case "$CMD" in
           clang*)
-            c_argv+=("-march=x86-64-v2${features}")
+            c_argv+=("-march=x86-64-v3${features}")
             ;;
           *)
-            c_argv+=("-march=x86_64_v2${features}")
+            c_argv+=("-march=x86_64_v3${features}")
             ;;
         esac
         ;;
@@ -407,20 +374,16 @@ case "${TARGET:-}" in
     else
       case "${TARGET:-}" in
         *darwin*)
-          if [ "$os_iphone" -eq 0 ]; then
-            c_argv+=("-mcpu=apple-m1${features}")
-          else
-            c_argv+=("-mcpu=apple-a10${features}")
-          fi
+          c_argv+=("-mcpu=apple-m1${features}")
           ;;
         *)
-          # Raspberry Pi 3
+          # Neoverse N1 (Free Oracle Arm server)
           case "$CMD" in
             clang*)
-              c_argv+=("-mcpu=cortex-a53${features}")
+              c_argv+=("-mcpu=neoverse-n1${features}")
               ;;
             *)
-              c_argv+=("-mcpu=cortex_a53${features}")
+              c_argv+=("-mcpu=neoverse_n1${features}")
               ;;
           esac
           ;;
@@ -442,15 +405,7 @@ case "$TARGET" in
   *darwin*)
     # https://stackoverflow.com/a/49560690
     c_argv+=('-DTARGET_OS_MAC=1')
-    if [ "$os_iphone" -eq 1 ]; then
-      # FIX-ME: Will need to expand this if we ever support tvOS/visionOS/watchOS
-      c_argv+=('-DTARGET_OS_IPHONE=1' '-DTARGET_OS_IOS=1')
-    elif [ "$os_iphone" -eq 2 ]; then
-      # FIX-ME: Will need to expand this if we ever support tvOS/visionOS/watchOS simulators
-      c_argv+=('-DTARGET_OS_IPHONE=1' '-DTARGET_OS_IOS=1' '-DTARGET_OS_SIMULATOR=1')
-    else
-      c_argv+=('-DTARGET_OS_IPHONE=0')
-    fi
+    c_argv+=('-DTARGET_OS_IPHONE=0')
     ;;
 esac
 
@@ -466,10 +421,6 @@ if [ -n "$sysroot" ]; then
   fi
 
   c_argv+=('-isystem' "${sysroot}/usr/include")
-
-  if [ -d "${sysroot}/usr/include/android" ]; then
-    c_argv+=('-isystem' "${sysroot}/usr/include/android")
-  fi
 
   if [ -d "${sysroot}/usr/include/${TARGET}" ]; then
     c_argv+=('-isystem' "${sysroot}/usr/include/${TARGET}")

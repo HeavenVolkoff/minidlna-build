@@ -16,11 +16,10 @@ case "$TARGET" in
 esac
 
 sed -i "/subdir('testbed')/d" lcms/meson.build
-sed -i "/subdir('testbed')/d" lcms/plugins/threaded/meson.build
-sed -i "/subdir('testbed')/d" lcms/plugins/fast_float/meson.build
+sed -i "/subdir('plugins')/d" lcms/meson.build
 
 # Remove some superfluous files
-rm -rf lcms/{.github,configure.ac,install-sh,depcomp,Makefile.in,config.sub,aclocal.m4,config.guess,ltmain.sh,m4,utils,configure,Projects,doc,testbed,plugins/{threaded/testbed,fast_float/testbed}}
+rm -rf lcms/{.github,configure.ac,install-sh,depcomp,Makefile.in,config.sub,aclocal.m4,config.guess,ltmain.sh,m4,utils,configure,Projects,doc,testbed,plugins}
 
 # Backup source
 bak_src 'lcms'
@@ -33,18 +32,8 @@ meson \
   --errorlogs \
   -Dutils=false \
   -Dsamples=false \
-  -Dthreaded="$(
-    case "$TARGET" in
-      *windows*)
-        # TODO: Add support for pthreads on Windows
-        echo "false"
-        ;;
-      *)
-        echo "true"
-        ;;
-    esac
-  )" \
-  -Dfastfloat=true \
+  -Dthreaded=false \
+  -Dfastfloat=false \
   ..
 
 ninja -j"$(nproc)"
