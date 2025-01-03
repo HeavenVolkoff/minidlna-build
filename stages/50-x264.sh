@@ -47,14 +47,7 @@ env RC="$WINDRES" ./configure \
         echo "--host=${TARGET%%-*}-linux-gnu"
         echo '--disable-win32thread'
         ;;
-      *windows*)
-        echo "--host=${TARGET%%-*}-windows-mingw64"
-        ;;
-      x86_64-darwin*)
-        echo "--host=${APPLE_TARGET}"
-        echo '--disable-win32thread'
-        ;;
-      aarch64-darwin*)
+      x86_64-darwin* | aarch64-darwin*)
         echo "--host=${APPLE_TARGET}"
         echo '--disable-win32thread'
         ;;

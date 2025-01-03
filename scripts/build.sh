@@ -59,27 +59,12 @@ case "$TARGET" in
         ;;
     esac
 
-    LLVM_BUILTIN='/usr/lib/llvm-17/lib/clang/17/lib'
     case "$TARGET" in
       *gnu)
         CFLAGS="${CFLAGS} -D_GLIBCXX_ASSERTIONS=1"
         ;;
       *musl)
         CFLAGS="${CFLAGS} -D_LARGEFILE64_SOURCE=1"
-        ;;
-      *android*)
-        export SDKROOT="${NDK_SDKROOT:?Missing ndk sysroot}"
-        ANDROID_LIB="${SDKROOT}/usr/lib/${TARGET}"
-        CFLAGS="${CFLAGS} -D__ANDROID_API__=${ANDROID_API_LEVEL:?Missing android api level}"
-        LDFLAGS="-fuse-ld=$(command -v ld.lld-17) -B${ANDROID_LIB}/${ANDROID_API_LEVEL:?} -L${ANDROID_LIB}/${ANDROID_API_LEVEL:?} -L${ANDROID_LIB} -lm ${LDFLAGS}"
-        ;;& # Resume switch/case matching from this point forward
-      x86_64-linux-android*)
-        # VERY UGLY HACK, no ideia why clang is not picking this up automatically
-        LDFLAGS="-L${LLVM_BUILTIN}/linux -lclang_rt.builtins-x86_64-android ${LDFLAGS}"
-        ;;
-      aarch64-linux-android*)
-        # VERY UGLY HACK, no ideia why clang is not picking this up automatically
-        LDFLAGS="-L${LLVM_BUILTIN}/baremetal -L${LLVM_BUILTIN}/linux -lclang_rt.builtins-aarch64-android -lclang_rt.builtins-aarch64 ${LDFLAGS}"
         ;;
     esac
     ;;
@@ -89,48 +74,26 @@ case "$TARGET" in
     export LTO=0
     export LD_LIBRARY_PATH="${CCTOOLS}/lib:/usr/local/lib:${LD_LIBRARY_PATH:-}"
 
-    OS_IPHONE="${OS_IPHONE:-0}"
-    if [ "$OS_IPHONE" -ge 1 ]; then
-      export IPHONEOS_DEPLOYMENT_TARGET="14.0"
-      LDFLAGS="${LDFLAGS} -Wl,-adhoc_codesign"
-    fi
-
     case "$TARGET" in
       x86_64*)
-        if [ "$OS_IPHONE" -lt 1 ]; then
-          export MACOSX_DEPLOYMENT_TARGET="10.15"
-          export CMAKE_APPLE_SILICON_PROCESSOR='x86_64'
-        fi
+        export MACOSX_DEPLOYMENT_TARGET="10.15"
+        export CMAKE_APPLE_SILICON_PROCESSOR='x86_64'
         LDFLAGS="${LDFLAGS} -Wl,-arch,x86_64"
         ;;
       aarch64*)
-        if [ "$OS_IPHONE" -lt 1 ]; then
-          export MACOSX_DEPLOYMENT_TARGET="11.0"
-          export CMAKE_APPLE_SILICON_PROCESSOR='aarch64'
-        fi
+        export MACOSX_DEPLOYMENT_TARGET="11.0"
+        export CMAKE_APPLE_SILICON_PROCESSOR='aarch64'
         LDFLAGS="${LDFLAGS} -Wl,-arch,arm64"
         ;;
     esac
 
     FFLAGS="${FFLAGS} -fstack-check"
 
-    if [ "$OS_IPHONE" -eq 1 ]; then
-      export SDKROOT="${IOS_SDKROOT:?Missing iOS SDK}"
-      if [ "${CRT_HACK:-0}" -ne 1 ]; then
-        CFLAGS="${CFLAGS} -mios-version-min=${IPHONEOS_DEPLOYMENT_TARGET} -miphoneos-version-min=${IPHONEOS_DEPLOYMENT_TARGET}"
-      fi
-    elif [ "$OS_IPHONE" -eq 2 ]; then
-      export SDKROOT="${IOS_SIMULATOR_SDKROOT:?Missing iOS simulator SDK}"
-      if [ "${CRT_HACK:-0}" -ne 1 ]; then
-        CFLAGS="${CFLAGS} -mios-simulator-version-min=${IPHONEOS_DEPLOYMENT_TARGET} -miphonesimulator-version-min=${IPHONEOS_DEPLOYMENT_TARGET}"
-      fi
-    else
-      export SDKROOT="${MACOS_SDKROOT:?Missing macOS SDK}"
-      if [ "${CRT_HACK:-0}" -ne 1 ]; then
-        # https://github.com/tpoechtrager/osxcross/commit/3279f86
-        CFLAGS="${CFLAGS} -mmacos-version-min=${MACOSX_DEPLOYMENT_TARGET} -mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
-        LDFLAGS="-L${SDKROOT}/usr/lib/system ${LDFLAGS}"
-      fi
+    export SDKROOT="${MACOS_SDKROOT:?Missing macOS SDK}"
+    if [ "${CRT_HACK:-0}" -ne 1 ]; then
+      # https://github.com/tpoechtrager/osxcross/commit/3279f86
+      CFLAGS="${CFLAGS} -mmacos-version-min=${MACOSX_DEPLOYMENT_TARGET} -mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
+      LDFLAGS="-L${SDKROOT}/usr/lib/system ${LDFLAGS}"
     fi
 
     # Ugly workaround for apple linker not finding the SDK's Framework directory
@@ -141,13 +104,6 @@ case "$TARGET" in
     fi
 
     LDFLAGS="-fuse-ld=$(command -v "${APPLE_TARGET:?}-ld") ${LDFLAGS}"
-    ;;
-  *windows*)
-    # Zig doesn't support stack probing on Windows
-    # https://github.com/ziglang/zig/blob/0.12.0/src/target.zig#L195-L198
-    FFLAGS="${FFLAGS} -fno-stack-check"
-    # https://github.com/strukturag/libheif/issues/357
-    CFLAGS="${CFLAGS} -D_GLIBCXX_ASSERTIONS=1 -D__MINGW64__"
     ;;
 esac
 export CFLAGS="${CFLAGS} ${FFLAGS}"
@@ -169,7 +125,7 @@ bak_src() {
   case "$1" in
     /srv/*) ;;
     *)
-      echo "Soruce dir must be under /srv" >&2
+      echo "Source dir must be under /srv" >&2
       exit 1
       ;;
   esac
@@ -194,9 +150,6 @@ cd /srv
   # Make sure license directory exists
   mkdir -p "${PREFIX}/licenses/"
 
-  OS_ANDROID="$(case "${TARGET##*-}" in android*) echo 1 ;; *) echo 0 ;; esac)"
-  export OS_ANDROID
-
   # shellcheck disable=SC1091
   . /srv/stage.sh
 )
@@ -220,10 +173,8 @@ rm -rf "${PREFIX:?}"/{bin,etc,man,lib/*.{.la,.so*,.dll.a},share}
 while IFS= read -r _license; do
   case "${_license}" in
     # Ignore license for tests, examples, contrib, ..., as we are not compiling, running or distributing those files
-    # Ignore GPLv2 licenses, because we opt for GPLv3 for all libraries
     *.sh | *.cfg | *.build | */test/* | */tests/* | */demos/* | */build/* | \
-      */utils/* | */contrib/* | */examples/* | */3rdparty/* | */third_party/* | \
-      *GPL2* | *GPLv2* | *gpl2* | *gplv2*)
+      */utils/* | */contrib/* | */examples/* | */3rdparty/* | */third_party/*)
       continue
       ;;
   esac

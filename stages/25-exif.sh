@@ -1,26 +1,24 @@
 #!/usr/bin/env -S bash -euo pipefail
 
-echo "Download zimg..."
-mkdir -p zimg
+echo "Download exif..."
+mkdir -p exif
 
-# renovate: datasource=github-releases depName=sekrit-twc/zimg
-_tag='3.0.5'
+# renovate: datasource=github-releases depName=libexif/libexif
+_tag='0.6.24'
 
-curl_tar "https://github.com/sekrit-twc/zimg/archive/refs/tags/release-${_tag}.tar.gz" zimg 1
-
-sed -i '/^dist_example_DATA/,/src\/testcommon\/win32_bitmap.h/d;' zimg/Makefile.am
+curl_tar "https://github.com/libexif/libexif/archive/refs/tags/v${_tag}.tar.gz" exif 1
 
 # Remove unused components
-rm -r zimg/{doc,_msvc,test,src/{testapp,testcommon}}
+rm -r exif/.*
 
 # Backup source
-bak_src 'zimg'
+bak_src 'exif'
 
-cd zimg
+cd exif
 
-echo "Build zimg..."
+echo "Build exif..."
 
-./autogen.sh
+autoreconf -fiv
 
 # shellcheck disable=SC2046
 ./configure \
@@ -37,12 +35,9 @@ echo "Build zimg..."
   --build="$(uname -m)-linux-gnu" \
   --prefix="$PREFIX" \
   --with-pic \
+  --disable-internal-docs \
   --enable-static \
-  --disable-debug \
   --disable-shared \
-  --disable-testapp \
-  --disable-example \
-  --disable-unit-test \
 || { echo "ERROR: Runing configure"; cat config.log; exit 1; }
 
 make -j"$(nproc)"

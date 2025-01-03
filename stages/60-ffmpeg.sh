@@ -31,11 +31,6 @@ for patch in \
   curl "$patch" | patch -F5 -lp1 -d ffmpeg -t
 done
 
-if [ "$OS_IPHONE" -gt 0 ]; then
-  # Patch to remove ffmpeg using non public API on iOS
-  patch -F5 -lp1 -d ffmpeg -t <"$PREFIX"/patches/remove_lzma_apple_non_public_api.patch
-fi
-
 # Backup source
 bak_src 'ffmpeg'
 
@@ -46,7 +41,7 @@ echo "Build ffmpeg..."
 env_specific_arg=()
 
 # CUDA and NVENC
-if [ "$(uname -m)" = "${TARGET%%-*}" ] && (case "$TARGET" in *android*) exit 1 ;; *linux* | x86_64-windows*) exit 0 ;; *) exit 1 ;; esac) then
+if [ "$(uname -m)" = "${TARGET%%-*}" ] && (case "$TARGET" in *linux*) exit 0 ;; *) exit 1 ;; esac) then
   # zig cc doesn't support compiling cuda code yet, so we use the host clang for it
   # Unfortunatly that means we only suport cuda in the same architecture as the host system
   # https://github.com/ziglang/zig/pull/10704#issuecomment-1023616464
@@ -57,7 +52,7 @@ if [ "$(uname -m)" = "${TARGET%%-*}" ] && (case "$TARGET" in *android*) exit 1 ;
     --disable-cuda-nvcc
   )
 else
-  # There are no Nvidia GPU drivers for macOS or Windows on ARM
+  # There are no Nvidia GPU drivers for macOS
   env_specific_arg+=(
     --nvcc=false
     --disable-cuda-llvm
@@ -79,7 +74,7 @@ case "$TARGET" in
       --x86asmexe=false
       --enable-vfp
       --enable-neon
-      # M1 Doesn't support i8mm
+      # M1 & N1 Doesn't support i8mm
       --disable-i8mm
     )
     ;;
@@ -87,28 +82,15 @@ esac
 
 case "$TARGET" in
   *darwin*)
-    if [ "$OS_IPHONE" -eq 1 ]; then
-      env_specific_arg+=(--sysroot="${IOS_SDKROOT:?Missing iOS SDK}")
-    elif [ "$OS_IPHONE" -eq 2 ]; then
-      env_specific_arg+=(--sysroot="${IOS_SIMULATOR_SDKROOT:?Missing iOS simulator SDK}")
-    else
-      env_specific_arg+=(
-        --sysroot="${MACOS_SDKROOT:?Missing macOS SDK}"
-        --disable-static
-        --enable-shared
-      )
-    fi
     env_specific_arg+=(
+      --sysroot="${MACOS_SDKROOT:?Missing macOS SDK}"
       # TODO: Metal suport is disabled because no open source compiler is available for it
       # TODO: Maybe try macOS own metal compiler under darling? https://github.com/darlinghq/darling/issues/326
       # TODO: Add support for vulkan (+ libplacebo) on macOS with MoltenVK
       --disable-metal
       --disable-vulkan
-      --disable-w32threads
       --disable-libshaderc
       --disable-libplacebo
-      --disable-mediafoundation
-      --enable-pthreads
       --enable-coreimage
       --enable-videotoolbox
       --enable-avfoundation
@@ -117,60 +99,23 @@ case "$TARGET" in
     ;;
   *linux*)
     env_specific_arg+=(
-      --disable-dotprod
       --disable-coreimage
-      --disable-w32threads
       --disable-videotoolbox
       --disable-avfoundation
       --disable-audiotoolbox
-      --disable-mediafoundation
       --enable-vaapi
       --enable-libdrm
       --enable-vulkan
-      --enable-pthreads
       --enable-libshaderc
       --enable-libplacebo
-    )
-
-    if [ "$OS_ANDROID" -ne 1 ]; then
-      env_specific_arg+=(
-        --disable-static
-        --enable-shared
-      )
-    fi
-    ;;
-  *windows*)
-    # FIX-ME: LTO breaks ffmpeg linking on windows target for some reason
-    export LTO=0
-    env_specific_arg+=(
-      --disable-static
-      --disable-dotprod
-      --disable-pthreads
-      --disable-coreimage
-      --disable-videotoolbox
-      --disable-avfoundation
-      --disable-audiotoolbox
-      --enable-vulkan
-      --enable-w32threads
-      --enable-libshaderc
-      --enable-libplacebo
-      --enable-mediafoundation
-      --enable-shared
     )
     ;;
 esac
 
 # Enable hardware acceleration
 case "$TARGET" in
-  *darwin* | aarch64-windows*) ;;
+  *darwin*) ;;
     # Apple only support its own APIs for hardware (de/en)coding on macOS
-    # Windows on ARM doesn't have external GPU support yet
-  *android*)
-    env_specific_arg+=(
-      --enable-jni
-      --enable-mediacodec
-    )
-    ;;
   *)
     env_specific_arg+=(
       --enable-amf
@@ -193,23 +138,8 @@ fi
 if ! ./configure \
   --cpu="$_arch" \
   --arch="$_arch" \
-  --prefix="$OUT" \
-  --target-os="$(
-    case "$TARGET" in
-      *android*)
-        echo "android"
-        ;;
-      *linux*)
-        echo "linux"
-        ;;
-      *darwin*)
-        echo "darwin"
-        ;;
-      *windows*)
-        echo "mingw64"
-        ;;
-    esac
-  )" \
+  --prefix="$PREFIX" \
+  --target-os="$(case "$TARGET" in *linux*) echo "linux" ;; *darwin*) echo "darwin" ;; esac)" \
   --cc=cc \
   --nm=nm \
   --ar=ar \
@@ -223,38 +153,43 @@ if ! ./configure \
   --disable-debug \
   --disable-doc \
   --disable-htmlpages \
-  --disable-txtpages \
-  --disable-manpages \
-  --disable-podpages \
   --disable-indevs \
+  --disable-libv4l2 \
+  --disable-libwebp \
+  --disable-libxcb \
+  --disable-libxcb-shape \
+  --disable-libxcb-shm \
+  --disable-libxcb-xfixes \
+  --disable-manpages \
+  --disable-mediafoundation \
+  --disable-neon-clobber-test \
+  --disable-network \
+  --disable-nonfree \
+  --disable-opengl \
+  --disable-openssl \
   --disable-outdevs \
   --disable-parser=avs2 \
   --disable-parser=avs3 \
+  --disable-podpages \
   --disable-postproc \
   --disable-programs \
-  --disable-libwebp \
-  --disable-sdl2 \
-  --disable-metal \
-  --disable-opengl \
-  --disable-network \
-  --disable-openssl \
   --disable-schannel \
+  --disable-sdl2 \
   --disable-securetransport \
-  --disable-xlib \
-  --disable-libxcb \
-  --disable-libxcb-shm \
-  --disable-libxcb-xfixes \
-  --disable-libxcb-shape \
-  --disable-libv4l2 \
+  --disable-shared \
+  --disable-txtpages \
   --disable-v4l2-m2m \
+  --disable-version3 \
+  --disable-xlib \
   --disable-xmm-clobber-test \
-  --disable-neon-clobber-test \
+  --disable-w32threads \
   --enable-asm \
   --enable-avcodec \
   --enable-avfilter \
   --enable-avformat \
   --enable-bzlib \
   --enable-cross-compile \
+  --enable-dotprod \
   --enable-gpl \
   --enable-inline-asm \
   --enable-libdav1d \
@@ -270,48 +205,22 @@ if ! ./configure \
   --enable-libx265 \
   --enable-libzimg \
   --enable-lzma \
+  --enable-opencl \
   --enable-optimizations \
   --enable-pic \
   --enable-postproc \
+  --enable-pthreads \
   --enable-swscale \
-  --enable-version3 \
+  --enable-static \
   --enable-zlib \
-  $(
-    # OpenCL is only available on iOS through a private framework
-    if [ "$OS_IPHONE" -ge 1 ]; then
-      echo '--disable-opencl'
-      # A12 Bionic, which is the CPU for our lowest supported iOS device (iPhone XS/XR) doesn't support dotprod
-      echo '--disable-dotprod'
-    else
-      echo '--enable-opencl'
-    fi
-  ) \
   "${env_specific_arg[@]}"; then
   cat ffbuild/config.log >&2
   exit 1
 fi
 
-case "$TARGET" in
-  *linux*)
-    # Replace incorrect identifyed sysctl as enabled on linux
-    sed -i 's/#define HAVE_SYSCTL 1/#define HAVE_SYSCTL 0/' config.h
-    ;;
-esac
+# Replace incorrect identified sysctl as enabled on linux
+sed -i 's/#define HAVE_SYSCTL 1/#define HAVE_SYSCTL 0/' config.h
 
 make -j"$(nproc)" V=1
 
 make install
-
-case "$TARGET" in
-  *windows*)
-    # Move dll.a to lib
-    find "${OUT}/lib" -type f -name '*.dll.a' -exec sh -euc \
-      'for dlla in "$@"; do lib="$(basename "$dlla" .dll.a).lib" && lib="${lib#"lib"}" && if ! [ -f "$lib" ]; then mv "$dlla" "$(dirname "$dlla")/${lib}"; fi; done' \
-      sh {} +
-    ;;
-esac
-
-# Copy static libs for iOS
-if [ "$OS_IPHONE" -gt 0 ] || [ "$OS_ANDROID" -eq 1 ]; then
-  cp -r "$PREFIX"/lib/*.a "${OUT}/lib/"
-fi

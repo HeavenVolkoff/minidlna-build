@@ -24,17 +24,9 @@ bak_src 'drm'
 mkdir -p drm/build
 cd drm/build
 
-configs=()
-
-case "$TARGET" in
-  android) configs+=(-Dudev=false) ;;&
-  aarch64-linux-android) configs+=(-Dfreedreno-kgsl=true) ;;
-  *) configs+=(-Dudev=true) ;;
-esac
-
 echo "Build drm..."
 if ! meson \
-  "${configs[@]}" \
+  -Dudev=true \
   -Dintel=auto \
   -Dradeon=auto \
   -Damdgpu=auto \

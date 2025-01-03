@@ -3,7 +3,6 @@
 ARG OUT='/opt/out'
 ARG TARGET='x86_64-linux-gnu'
 ARG VERSION='0.0.0'
-ARG OS_IPHONE='0'
 
 # renovate: datasource=github-releases depName=ziglang/zig
 ARG ZIG_VERSION='0.12.1'
@@ -11,11 +10,7 @@ ARG ZIG_VERSION='0.12.1'
 ARG MESON_VERSION='1.6.1'
 # renovate: datasource=github-releases depName=Kitware/CMake
 ARG CMAKE_VERSION='3.31.3'
-# renovate: datasource=github-releases depName=NixOS/patchelf
-ARG PATCHELF_VERSION='0.18.0'
 ARG MACOS_SDK_VERSION='14.0'
-ARG IOS_SDK_VERSION='17.0'
-ARG ANDROID_API_LEVEL='28'
 
 #--
 
@@ -45,6 +40,7 @@ RUN echo "deb https://apt.llvm.org/bookworm/ llvm-toolchain-bookworm-17 main" `
 # Install build dependencies
 RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt `
 	apt-get update && apt-get install `
+	tcl `
 	nasm `
 	curl `
 	make `
@@ -57,10 +53,14 @@ RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/
 	llvm-17 `
 	autoconf `
 	clang-17 `
+	autopoint `
 	pkg-config `
 	ninja-build `
+	locales-all `
 	libarchive-tools `
 	protobuf-compiler
+
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 LANGUAGE=en
 
 # Configure sysroot and prefix
 ARG OUT
@@ -98,59 +98,30 @@ RUN cd /srv/meson `
 	&& packaging/create_zipapp.py --outfile "${SYSROOT}/bin/meson" --compress `
 	&& rm -rf /srv/meson
 
-# Download and install patchelf, used to do some light rpath ELF manipulation
-ARG PATCHELF_VERSION
-RUN --mount=type=cache,target=/root/.cache `
-	curl_tar "https://github.com/NixOS/patchelf/releases/download/${PATCHELF_VERSION:?}/patchelf-${PATCHELF_VERSION:?}-$(uname -m).tar.gz" "$SYSROOT" 1
-
 # Download and install gas-preprocessor, used by our zig wrapper to handle GNU flavored assembly files
 ADD --chmod=0750 'https://github.com/libav/gas-preprocessor/raw/master/gas-preprocessor.pl' "${SYSROOT}/bin/gas-preprocessor.pl"
-
-# Download compat tool for generating def files for windows
-ADD --chmod=0750 'https://github.com/FFmpeg/FFmpeg/raw/master/compat/windows/makedef' "${SYSROOT}/bin/makedef"
-
-# Workaround for -lsynchronization linking issue on Windows GNU targets
-# https://github.com/ziglang/zig/issues/14919
-RUN cd "${SYSROOT}/lib/libc/mingw/lib-common" `
-	&& { [ -f 'synchronization.def' ] || ln -s 'api-ms-win-core-synch-l1-2-0.def' 'synchronization.def'; }
 
 #--
 
 FROM build-base AS base-layer
 
-# Configure android ndk sysroot
-ENV NDK_SDKROOT="${SYSROOT}/sysroot"
-ARG ANDROID_API_LEVEL
-ENV ANDROID_API_LEVEL="${ANDROID_API_LEVEL:?}"
-
 # Configure macOS SDK for darwin targets
 ARG MACOS_SDK_VERSION
 ENV MACOS_SDK_VERSION="${MACOS_SDK_VERSION:?}"
 ENV MACOS_SDKROOT="/opt/MacOSX${MACOS_SDK_VERSION}.sdk"
-ARG IOS_SDK_VERSION
-ENV IOS_SDK_VERSION="${IOS_SDK_VERSION:?}"
-ENV IOS_SDKROOT="/opt/iPhoneOS${IOS_SDK_VERSION}.sdk"
-ENV IOS_SIMULATOR_SDKROOT="/opt/iPhoneSimulator${IOS_SDK_VERSION}.sdk"
 
 # Export which target we are building for
 ARG TARGET
 ENV TARGET="${TARGET:?}"
-ARG OS_IPHONE
-ENV OS_IPHONE="${OS_IPHONE:?}"
 
 # Cache bust
-RUN echo "Building: ${TARGET}$(case "$TARGET" in *darwin*) echo " (macOS SDK: ${MACOS_SDK_VERSION}, iOS SDK: ${IOS_SDK_VERSION})" ;; esac)"
+RUN echo "Building: ${TARGET}$(case "$TARGET" in *darwin*) echo " (macOS SDK: ${MACOS_SDK_VERSION})" ;; esac)"
 
 # Script wrapper for some common build tools. Auto choose between llvm, zig or apple specific versions
 COPY --chmod=0750 ./scripts/tool-wrapper.sh "${SYSROOT}/bin/tool-wrapper.sh"
 RUN for tool in `
 	ar nm lib lipo size otool strip ranlib readelf libtool objdump dlltool objcopy strings bitcode-strip install_name_tool; `
 	do ln -s "$(command -v tool-wrapper.sh)" "${SYSROOT}/bin/${tool}"; done
-
-# Custom llvm rc wrapper script with some pre-configurations
-# Do not name this llvm-rc or rc.exe, to avoid cmake weird special behavior for those tool names
-COPY --chmod=0750 ./scripts/rc.sh "${SYSROOT}/bin/rc"
-COPY --chmod=0750 ./scripts/rc.sh "${SYSROOT}/bin/windres"
 
 # Polyfill macOS sw_vers command
 COPY --chmod=0750 ./scripts/sw_vers.sh "${SYSROOT}/bin/sw_vers"
@@ -180,24 +151,12 @@ RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/
 	--mount=type=bind,source=stages/00-apple/04-cctools.sh,target=/srv/04-cctools.sh `
 	/srv/04-cctools.sh
 
-RUN --mount=type=cache,target=/root/.cache `
-	--mount=type=bind,source=stages/00-apple/05-ldid.sh,target=/srv/05-ldid.sh `
-	/srv/05-ldid.sh
-
-# Download NDK sysroot
-RUN --mount=type=cache,target=/root/.cache `
-	--mount=type=bind,source=stages/00-ndk.sh,target=/srv/00-ndk.sh `
-	/srv/00-ndk.sh
-
 # Ensure no one tries to call the native system linker
 RUN ln -s '/usr/bin/false' "${SYSROOT}/bin/ld"
 
 # Add wrapper script for zig compilers, we need to ensure that they are called with the correct arguments
 COPY --chmod=0750 ./scripts/cc.sh "${SYSROOT}/bin/cc"
 RUN ln -s 'cc' "${SYSROOT}/bin/c++"
-# Hack for cmake to work when compiling android targets
-RUN ln -s 'cc' "${SYSROOT}/bin/android-gcc"
-RUN ln -s 'cc' "${SYSROOT}/bin/android-g++"
 
 # Create cmake and meson toolchain files
 RUN --mount=type=bind,rw,source=scripts/toolchain.sh,target=/srv/toolchain.sh /srv/toolchain.sh
@@ -213,6 +172,11 @@ COPY --chmod=0750 ./scripts/build.sh /srv/build.sh
 
 #--
 
+FROM layer-00 AS layer-10-bsd-compat-header
+
+RUN --mount=type=cache,target=/root/.cache --mount=type=bind,source=stages/10-bsd-compat-header.sh,target=/srv/stage.sh `
+	/srv/build.sh
+
 FROM layer-00 AS layer-10-sse2neon
 
 RUN --mount=type=cache,target=/root/.cache --mount=type=bind,source=stages/10-sse2neon.sh,target=/srv/stage.sh `
@@ -226,6 +190,7 @@ RUN --mount=type=cache,target=/root/.cache `
 
 FROM layer-00 AS layer-10
 
+COPY --from=layer-10-bsd-compat-header "${PREFIX}/." "$PREFIX"
 COPY --from=layer-10-sse2neon "${PREFIX}/." "$PREFIX"
 COPY --from=layer-10-compiler-rt "/usr/lib/llvm-17/lib/clang/17/." '/usr/lib/llvm-17/lib/clang/17'
 
@@ -264,6 +229,24 @@ COPY --from=layer-20-zlib "${PREFIX}/." "$PREFIX"
 
 #--
 
+FROM layer-20 AS layer-25-exif
+
+RUN --mount=type=cache,target=/root/.cache `
+	--mount=type=bind,source=stages/25-exif.sh,target=/srv/stage.sh `
+	/srv/build.sh
+
+FROM layer-20 AS layer-25-id3tag
+
+RUN --mount=type=cache,target=/root/.cache `
+	--mount=type=bind,source=stages/25-id3tag.sh,target=/srv/stage.sh `
+	/srv/build.sh
+
+FROM layer-20 AS layer-25-jpeg-turbo
+
+RUN --mount=type=cache,target=/root/.cache `
+	--mount=type=bind,source=stages/25-jpeg-turbo.sh,target=/srv/stage.sh `
+	/srv/build.sh
+
 FROM layer-20 AS layer-25-lcms
 
 RUN --mount=type=cache,target=/root/.cache `
@@ -289,12 +272,22 @@ RUN --mount=type=cache,target=/root/.cache `
 	--mount=type=bind,source=stages/25-pciaccess.sh,target=/srv/stage.sh `
 	/srv/build.sh
 
+FROM layer-20 AS layer-25-sqlite
+
+RUN --mount=type=cache,target=/root/.cache `
+	--mount=type=bind,source=stages/25-sqlite.sh,target=/srv/stage.sh `
+	/srv/build.sh
+
 FROM layer-20 AS layer-25
 
+COPY --from=layer-25-exif "${PREFIX}/." "$PREFIX"
+COPY --from=layer-25-id3tag "${PREFIX}/." "$PREFIX"
+COPY --from=layer-25-jpeg-turbo "${PREFIX}/." "$PREFIX"
 COPY --from=layer-25-lcms "${PREFIX}/." "$PREFIX"
 COPY --from=layer-25-lzma "${PREFIX}/." "$PREFIX"
 COPY --from=layer-25-ogg "${PREFIX}/." "$PREFIX"
 COPY --from=layer-25-pciaccess "${PREFIX}/." "$PREFIX"
+COPY --from=layer-25-sqlite "${PREFIX}/." "$PREFIX"
 
 #--
 
@@ -304,17 +297,16 @@ RUN --mount=type=cache,target=/root/.cache `
 	--mount=type=bind,source=stages/45-dav1d.sh,target=/srv/stage.sh `
 	/srv/build.sh
 
-FROM layer-25 AS layer-45-de265
-
-RUN --mount=type=cache,target=/root/.cache `
-	--mount=type=bind,source=stages/45-de265.sh,target=/srv/stage.sh `
-	--mount=type=bind,source=patches/45-de265,target="${PREFIX}/patches" `
-	/srv/build.sh
-
 FROM layer-25 AS layer-45-drm
 
 RUN --mount=type=cache,target=/root/.cache `
 	--mount=type=bind,source=stages/45-drm.sh,target=/srv/stage.sh `
+	/srv/build.sh
+
+FROM layer-25 AS layer-45-flac
+
+RUN --mount=type=cache,target=/root/.cache `
+	--mount=type=bind,source=stages/45-flac.sh,target=/srv/stage.sh `
 	/srv/build.sh
 
 FROM layer-25 AS layer-45-opencl
@@ -348,8 +340,8 @@ RUN --mount=type=cache,target=/root/.cache `
 FROM layer-25 AS layer-45
 
 COPY --from=layer-45-dav1d "${PREFIX}/." "$PREFIX"
-COPY --from=layer-45-de265 "${PREFIX}/." "$PREFIX"
 COPY --from=layer-45-drm "${PREFIX}/." "$PREFIX"
+COPY --from=layer-45-flac "${PREFIX}/." "$PREFIX"
 COPY --from=layer-45-opencl "${PREFIX}/." "$PREFIX"
 COPY --from=layer-45-sharpyuv "${PREFIX}/." "$PREFIX"
 COPY --from=layer-45-vorbis "${PREFIX}/." "$PREFIX"
@@ -470,89 +462,49 @@ COPY --from=layer-50-zimg "${PREFIX}/." "$PREFIX"
 
 #--
 
-FROM layer-00 AS layer-99-protoc
-
-ADD https://raw.githubusercontent.com/protocolbuffers/protobuf/v25.0/LICENSE '/srv/protoc/LICENSE'
+FROM layer-50 AS layer-60-ffmpeg
 
 RUN --mount=type=cache,target=/root/.cache `
-	--mount=type=bind,source=stages/99-protoc.sh,target=/srv/stage.sh `
+	--mount=type=bind,source=stages/60-ffmpeg.sh,target=/srv/stage.sh `
 	/srv/build.sh
 
-FROM layer-00 AS layer-99-pdfium
+FROM layer-50 AS layer-60
+
+COPY --from=layer-60-ffmpeg "${PREFIX}/." "$PREFIX"
+
+#--
+
+FROM layer-60 AS layer-61-ffmpegthumbnailer
 
 RUN --mount=type=cache,target=/root/.cache `
-	--mount=type=bind,source=stages/99-pdfium.sh,target=/srv/stage.sh `
+	--mount=type=bind,source=stages/61-ffmpegthumbnailer.sh,target=/srv/stage.sh `
 	/srv/build.sh
 
-FROM layer-00 AS layer-99-yolo
+FROM layer-60 AS layer-61
+
+COPY --from=layer-61-ffmpegthumbnailer "${PREFIX}/." "$PREFIX"
+
+FROM layer-61 AS layer-99-minidlna
 
 RUN --mount=type=cache,target=/root/.cache `
-	--mount=type=bind,source=stages/99-yolov8.sh,target=/srv/stage.sh `
-	/srv/build.sh
-
-FROM layer-20 AS layer-99-onnx
-
-RUN --mount=type=cache,target=/root/.cache `
-	--mount=type=bind,source=stages/99-onnx.sh,target=/srv/stage.sh `
-	/srv/build.sh
-
-FROM layer-50 AS layer-99-ffmpeg
-
-RUN --mount=type=cache,target=/root/.cache `
-	--mount=type=bind,source=stages/99-ffmpeg.sh,target=/srv/stage.sh `
-	--mount=type=bind,source=patches/99-ffmpeg,target="${PREFIX}/patches" `
-	/srv/build.sh
-
-FROM layer-45 AS layer-99-heif
-
-COPY --from=layer-99-ffmpeg "${OUT}/." "$PREFIX"
-
-RUN --mount=type=cache,target=/root/.cache `
-	--mount=type=bind,source=stages/99-heif.sh,target=/srv/stage.sh `
+	--mount=type=bind,source=stages/99-minidlna.sh,target=/srv/stage.sh `
+	--mount=type=bind,source=patches/99-minidlna,target="${PREFIX}/patches" `
 	/srv/build.sh
 
 FROM layer-00 AS layer-99
 
-COPY --from=layer-99-heif "${OUT}/." "$OUT"
-COPY --from=layer-99-heif "${PREFIX}/srv/." "${OUT}/srv"
-COPY --from=layer-99-heif "${PREFIX}/licenses/." "${OUT}/licenses"
-
-COPY --from=layer-99-protoc "${OUT}/." "$OUT"
-COPY --from=layer-99-protoc "${PREFIX}/licenses/." "${OUT}/licenses"
-
-COPY --from=layer-99-pdfium "${OUT}/." "$OUT"
-COPY --from=layer-99-pdfium "${PREFIX}/licenses/." "${OUT}/licenses"
-
-COPY --from=layer-99-yolo "${OUT}/." "$OUT"
-
-COPY --from=layer-99-onnx "${OUT}/." "$OUT"
-COPY --from=layer-99-onnx "${PREFIX}/srv/." "${OUT}/srv"
-COPY --from=layer-99-onnx "${PREFIX}/licenses/." "${OUT}/licenses"
-
-COPY --from=layer-99-ffmpeg "${OUT}/." "$OUT"
-COPY --from=layer-99-ffmpeg "${PREFIX}/srv/." "${OUT}/srv"
-COPY --from=layer-99-ffmpeg "${PREFIX}/licenses/." "${OUT}/licenses"
+COPY --from=layer-99-minidlna "${OUT}/." "$OUT"
+COPY --from=layer-99-minidlna "${PREFIX}/srv/." "${OUT}/srv"
+COPY --from=layer-99-minidlna "${PREFIX}/licenses/." "${OUT}/licenses"
 
 # Remove build only files from output
 RUN rm -rf "${OUT}/share" "${OUT}/lib/pkgconfig" "${OUT}/lib/cmake"
 RUN find "${OUT}"  \( -name '*.def' -o -name '*.dll.a' \) -delete
 
-# Move .lib files to the lib folder (Windows target only)
-RUN if [ -d "${OUT}/bin" ]; then find "${OUT}/bin" -name '*.lib' -exec install -Dt ../lib/ -m a-rwx,u+rw,g+r,o+r {} + ; fi
-
-# Copy .lib to .dll.a (Windows target only)
-RUN find "$OUT/lib" -name '*.lib' -exec `
-	sh -euxc 'for _file in "$@"; do cp "$_file" "$(dirname "$_file")/lib$(basename "$_file" .lib).dll.a"; done' sh {} +
-
 # Strip debug symbols and ensure any .so, .dll, .dylib has the execution flag set
-# Strip must run before patchelf
-# https://github.com/NixOS/patchelf/issues/507
 RUN --mount=type=cache,target=/root/.cache `
 	echo 'strip -S "$@" && chmod +x "$@"' >/srv/stage.sh `
 	&& find "$OUT" -type f \( -name '*.so' -o -name '*.so.*' -o -name '*.dll' -o -name '*.dylib' \) -exec /srv/build.sh {} +
-
-# Ensure all .so files have the correct rpaths (Linux target only)
-RUN find "$OUT" -type f \( -name '*.so' -o -name '*.so.*' \) -exec patchelf --set-rpath '$ORIGIN' {} \;
 
 # Remove non executable files from bin folder
 RUN if [ -d "${OUT}/bin" ]; then find "${OUT}/bin" -type f -not -executable -delete; fi
@@ -562,13 +514,6 @@ RUN find "$OUT" -type d -delete 2>/dev/null || true
 
 # Ensure correct file permissions
 RUN find "${OUT}" -type f -exec chmod u+rw,g+r,g-w,o+r,o-w {} +
-
-# Create macOS Frameworks from the built libs (Darwin target only)
-ARG VERSION
-ENV VERSION="${VERSION:-0.0.0}"
-RUN --mount=type=cache,target=/root/.cache `
-	--mount=type=bind,source=scripts/create-macos-framework.sh,target=/srv/stage.sh `
-	/srv/build.sh
 
 # Compress source code backup of the built libraries
 RUN cd "${OUT}/srv" && env XZ_OPT='-T0 -7' bsdtar -cJf ../src.tar.xz *

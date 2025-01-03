@@ -4,11 +4,7 @@ set -euo pipefail
 
 case "$TARGET" in
   x86_64-darwin*)
-    if [ "$OS_IPHONE" -ge 1 ]; then
-      _target='x86_64-apple-darwin20'
-    else
-      _target='x86_64-apple-darwin19'
-    fi
+    _target='x86_64-apple-darwin19'
     ;;
   aarch64-darwin*)
     _target='arm64-apple-darwin20'

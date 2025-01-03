@@ -5,12 +5,6 @@ LLVM_PATH="/usr/lib/llvm-17"
 
 case "$TARGET" in
   *darwin*) ;;
-  *android*)
-    echo "Download llvm compiler_rt..."
-    curl_tar 'https://github.com/spacedriveapp/ndk-sysroot/releases/download/2024.10.20/android_compiler-rt.tar.xz' \
-      "${LLVM_PATH}/lib/clang/17/lib" 0
-    exit 0
-  ;;
   *)
     export UNSUPPORTED=1
     exit 1
@@ -51,71 +45,25 @@ cmake_config=(
   -DCMAKE_INSTALL_PREFIX="${LLVM_PATH}/lib/clang/17"
   -DCMAKE_TOOLCHAIN_FILE='/srv/toolchain.cmake'
   -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=Off
-  -DCOMPILER_RT_ENABLE_IOS=On
+  -DCOMPILER_RT_ENABLE_IOS=Off
   -DCOMPILER_RT_BUILD_XRAY=Off
   -DCOMPILER_RT_BUILD_SANITIZERS=Off
   -DDARWIN_macosx_CACHED_SYSROOT="${MACOS_SDKROOT:?Missing macOS SDK path}"
   -DDARWIN_macosx_OVERRIDE_SDK_VERSION="${MACOS_SDK_VERSION:?Missing macOS SDK version}"
   -DDARWIN_PREFER_PUBLIC_SDK=On
-  -DDARWIN_iphonesimulator_CACHED_SYSROOT="${IOS_SDKROOT:?Missing iOS SDK path}"
-  -DDARWIN_iphonesimulator_OVERRIDE_SDK_VERSION="${IOS_SDK_VERSION:?Missing iOS SDK version}"
-  -DDARWIN_iphoneos_CACHED_SYSROOT="${IOS_SDKROOT:?Missing iOS SDK path}"
-  -DDARWIN_iphoneos_OVERRIDE_SDK_VERSION="${IOS_SDK_VERSION:?Missing iOS SDK version}"
   -DDEFAULT_SANITIZER_MIN_OSX_VERSION="${MACOS_SDK_VERSION:?Missing macOS SDK version}"
 )
 
 if [ "$_arch" == 'aarch64' ]; then
-  if [ "$OS_IPHONE" -eq 0 ]; then
-    cmake_config+=(
-      -DDARWIN_osx_ARCHS="arm64"
-      -DDARWIN_osx_BUILTIN_ARCHS="arm64"
-      -DDARWIN_ios_ARCHS="-"
-      -DDARWIN_ios_BUILTIN_ARCHS="-"
-      -DDARWIN_iossim_ARCHS="-"
-      -DDARWIN_iossim_BUILTIN_ARCHS="-"
-    )
-  elif [ "$OS_IPHONE" -eq 1 ]; then
-    cmake_config+=(
-      -DDARWIN_osx_ARCHS="-"
-      -DDARWIN_osx_BUILTIN_ARCHS="-"
-      -DDARWIN_ios_ARCHS="arm64"
-      -DDARWIN_ios_BUILTIN_ARCHS="arm64"
-      -DDARWIN_iossim_ARCHS="-"
-      -DDARWIN_iossim_BUILTIN_ARCHS="-"
-    )
-  elif [ "$OS_IPHONE" -eq 2 ]; then
-    cmake_config+=(
-      -DDARWIN_osx_ARCHS="-"
-      -DDARWIN_osx_BUILTIN_ARCHS="-"
-      -DDARWIN_ios_ARCHS="-"
-      -DDARWIN_ios_BUILTIN_ARCHS="-"
-      -DDARWIN_iossim_ARCHS="arm64"
-      -DDARWIN_iossim_BUILTIN_ARCHS="arm64"
-    )
-  fi
+  cmake_config+=(
+    -DDARWIN_osx_ARCHS="arm64"
+    -DDARWIN_osx_BUILTIN_ARCHS="arm64"
+  )
 else
-  if [ "$OS_IPHONE" -eq 0 ]; then
-    cmake_config+=(
-      -DDARWIN_osx_ARCHS="$_arch"
-      -DDARWIN_osx_BUILTIN_ARCHS="$_arch"
-      -DDARWIN_ios_ARCHS="-"
-      -DDARWIN_ios_BUILTIN_ARCHS="-"
-      -DDARWIN_iossim_ARCHS="-"
-      -DDARWIN_iossim_BUILTIN_ARCHS="-"
-    )
-  elif [ "$OS_IPHONE" -eq 1 ]; then
-    echo "iOS don't support $_arch" >&2
-    exit 1
-  elif [ "$OS_IPHONE" -eq 2 ]; then
-    cmake_config+=(
-      -DDARWIN_osx_ARCHS="-"
-      -DDARWIN_osx_BUILTIN_ARCHS="-"
-      -DDARWIN_ios_ARCHS="-"
-      -DDARWIN_ios_BUILTIN_ARCHS="-"
-      -DDARWIN_iossim_ARCHS="$_arch"
-      -DDARWIN_iossim_BUILTIN_ARCHS="$_arch"
-    )
-  fi
+  cmake_config+=(
+    -DDARWIN_osx_ARCHS="$_arch"
+    -DDARWIN_osx_BUILTIN_ARCHS="$_arch"
+  )
 fi
 
 cmake "${cmake_config[@]}" ..
@@ -123,12 +71,6 @@ cmake "${cmake_config[@]}" ..
 ninja -j"$(nproc)"
 
 ninja install
-
-# HACK: Some projects fail to find compiler-rt when compiling for iOS due to
-# looking for darwin directory, work around by linking darwin to ios
-if [ "$OS_IPHONE" -ge 1 ]; then
-  ln -s ./ios "${LLVM_PATH}/lib/clang/17/lib/darwin"
-fi
 
 # Symlink clang_rt to arch specific names
 while IFS= read -r _lib; do

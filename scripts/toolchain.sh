@@ -21,64 +21,33 @@ fi
 SYSTEM_NAME="${TARGET#*-}"
 SYSTEM_NAME="${SYSTEM_NAME%-*}"
 
-# On windows this should be AMD64 or ARM64
 # On macOS aarch64 is called arm64
-# However most projects don't check for the windows/macOS specific names
+# However most projects don't check for the macOS specific names
 # Considering this we will just use the generic names, and patch any specific issues for those platforms
 SYSTEM_PROCESSOR="${TARGET%%-*}"
 
-# Wheter to build iOS versions instead of macOS
-OS_IPHONE="${OS_IPHONE:-0}"
-
-# Check if target last part (*-*-last) is android
-OS_ANDROID="$(case "${TARGET##*-}" in android*) echo 1 ;; *) echo 0 ;; esac)"
-
 case "$SYSTEM_NAME" in
-  windows)
-    KERNEL="nt"
-    SUBSYSTEM="windows"
-    SYSTEM_VERSION=""
-    ;;
   darwin)
     KERNEL="xnu"
     # https://theapplewiki.com/wiki/Kernel
-    if [ "$OS_IPHONE" -eq 1 ]; then
-      SDKROOT="${IOS_SDKROOT:?Missing iOS SDK}"
-      SUBSYSTEM="ios"
-      # iOS 14
-      SYSTEM_VERSION="20.0.0"
-    elif [ "$OS_IPHONE" -eq 2 ]; then
-      SDKROOT="${IOS_SIMULATOR_SDKROOT:?Missing iOS simulator SDK}"
-      SUBSYSTEM="ios-simulator"
-      # iOS 14
-      SYSTEM_VERSION="20.0.0"
-    else
-      SDKROOT="${MACOS_SDKROOT:?Missing macOS SDK}"
-      SUBSYSTEM="macos"
-      case "$SYSTEM_PROCESSOR" in
-        x86_64)
-          # macOS 10.15
-          SYSTEM_VERSION="19.0.0"
-          ;;
-        aarch64)
-          # macOS 11
-          SYSTEM_VERSION="20.1.0"
-          ;;
-      esac
-    fi
+    SDKROOT="${MACOS_SDKROOT:?Missing macOS SDK}"
+    SUBSYSTEM="macos"
+    case "$SYSTEM_PROCESSOR" in
+      x86_64)
+        # macOS 10.15
+        SYSTEM_VERSION="19.0.0"
+        ;;
+      aarch64)
+        # macOS 11
+        SYSTEM_VERSION="20.1.0"
+        ;;
+    esac
     ;;
   linux)
     KERNEL="linux"
-    if [ "$OS_ANDROID" -eq 1 ]; then
-      SDKROOT="${NDK_SDKROOT:?Missing ndk sysroot}"
-      SUBSYSTEM="android"
-      SYSTEM_NAME="android"
-      SYSTEM_VERSION="${ANDROID_API_LEVEL:?Missing android api level}"
-    else
-      SUBSYSTEM="linux"
-      # Linux kernel shipped with CentOS 7
-      SYSTEM_VERSION="3.10.0"
-    fi
+    SUBSYSTEM="linux"
+    # Linux kernel shipped with CentOS 7
+    SYSTEM_VERSION="3.10.0"
     ;;
 esac
 
@@ -112,13 +81,7 @@ cpu_family = '${SYSTEM_PROCESSOR}'
 EOF
 
 cat <<EOF >/srv/toolchain.cmake
-$(
-  if [ "$SYSTEM_NAME" = 'darwin' ] && [ "$OS_IPHONE" -ge 1 ]; then
-    echo 'set(CMAKE_SYSTEM_NAME iOS)'
-  else
-    echo "set(CMAKE_SYSTEM_NAME ${SYSTEM_NAME^})"
-  fi
-)
+set(CMAKE_SYSTEM_NAME ${SYSTEM_NAME^})
 set(CMAKE_SYSTEM_VERSION ${SYSTEM_VERSION})
 set(CMAKE_SYSTEM_PROCESSOR ${SYSTEM_PROCESSOR})
 
@@ -130,23 +93,7 @@ $(
     aarch64-darwin*)
       echo 'set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "")'
       ;;
-    x86_64-linux-android)
-      echo 'set(CMAKE_ANDROID_ARCH_ABI x86_64)'
-      ;;
-    aarch64-linux-android)
-      echo 'set(CMAKE_ANDROID_ARCH_ABI arm64-v8a)'
-      ;;
   esac
-)
-
-$(
-  if [ "$OS_ANDROID" -eq 1 ]; then
-    echo 'set(CMAKE_ANDROID_STL_TYPE c++-fexceptions)'
-    echo 'set(CMAKE_ANDROID_RTTI TRUE)'
-    echo 'set(CMAKE_ANDROID_EXCEPTIONS TRUE)'
-    echo "set(ANDROID_PLATFORM android-${SYSTEM_VERSION})"
-    echo "set(CMAKE_ANDROID_STANDALONE_TOOLCHAIN ${SYSROOT})"
-  fi
 )
 
 $(if [ -n "${SDKROOT:-}" ]; then echo "set(CMAKE_SYSROOT ${SDKROOT})"; fi)
@@ -225,7 +172,7 @@ EOF
     ln -s "unwind.pc" "${PREFIX}/lib/pkgconfig/libgcc_s.pc"
 
     # zig doesn't provide libgcc_eh
-    # As an alternative use libc++ to replace it on windows gnu targets
+    # As an alternative use libc++ to replace it on gnu targets
     cat <<EOF >"${PREFIX}/lib/pkgconfig/gcc_eh.pc"
 Name: libgcc_eh
 Description: Replace libgcc_eh with libc++

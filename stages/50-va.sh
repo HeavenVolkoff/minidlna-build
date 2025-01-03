@@ -16,27 +16,29 @@ _tag='2.22.0'
 
 curl_tar "https://github.com/intel/libva/releases/download/${_tag}/libva-${_tag}.tar.bz2" va 1
 
-rm -rf va/{.github,doc}
+rm -rf va/.*
 
 # Backup source
 bak_src 'va'
 
-mkdir -p va/build
-cd va/build
+cd va
 
 echo "Build va..."
-if ! meson \
-  -Dwith_x11='no' \
-  -Dwith_glx='no' \
-  -Dwith_win32='no' \
-  -Dwith_wayland='no' \
-  -Denable_docs=false \
-  -Ddisable_drm=false \
-  ..; then
-  cat meson-logs/meson-log.txt
-  exit 1
-fi
 
-ninja -j"$(nproc)"
+./configure \
+  --host="$TARGET" \
+  --build="$(uname -m)-linux-gnu" \
+  --prefix="$PREFIX" \
+  --with-pic \
+  --enable-drm \
+  --enable-static \
+  --disable-shared \
+  --disable-x11 \
+  --disable-glx \
+  --disable-wayland \
+  --disable-docs \
+|| { echo "ERROR: Runing configure"; cat config.log; exit 1; }
 
-ninja install
+make -j"$(nproc)"
+
+make install
