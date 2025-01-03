@@ -502,7 +502,7 @@ RUN rm -rf "${OUT}/lib/pkgconfig" "${OUT}/lib/cmake"
 RUN find "${OUT}"  \( -name '*.def' -o -name '*.dll.a' \) -delete
 
 # Strip debug symbols from minidlna binary
-RUN strip -S "${OUT}/sbin/minidlna" && chmod +x "${OUT}/sbin/minidlna"
+RUN echo 'strip -S "${OUT}/sbin/minidlna"' >/srv/stage.sh && /srv/build.sh
 
 # Remove non executable files from bin folder
 RUN if [ -d "${OUT}/bin" ]; then find "${OUT}/bin" -type f -not -executable -delete; fi
