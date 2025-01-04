@@ -501,8 +501,8 @@ COPY --from=layer-99-minidlna "${PREFIX}/licenses/." "${OUT}/licenses"
 RUN rm -rf "${OUT}/lib/pkgconfig" "${OUT}/lib/cmake"
 RUN find "${OUT}"  \( -name '*.def' -o -name '*.dll.a' \) -delete
 
-# Strip debug symbols from minidlna binary
-RUN echo 'strip -S "${OUT}/sbin/minidlna"' >/srv/stage.sh && /srv/build.sh
+# Strip debug symbols from minidlnad binary
+RUN echo 'strip -S "${OUT}/sbin/minidlnad"' >/srv/stage.sh && /srv/build.sh
 
 # Remove non executable files from bin folder
 RUN if [ -d "${OUT}/bin" ]; then find "${OUT}/bin" -type f -not -executable -delete; fi
