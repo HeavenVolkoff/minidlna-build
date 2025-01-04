@@ -25,6 +25,8 @@ cd va
 
 echo "Build va..."
 
+autoreconf --verbose --install --force
+
 ./configure \
   --host="$TARGET" \
   --build="$(uname -m)-linux-gnu" \
