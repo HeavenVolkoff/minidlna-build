@@ -113,30 +113,30 @@ jobs:
 
       - name: Check dependencies
         if: startsWith(matrix.settings.target, 'aarch64-linux')
-        run: docker run --platform linux/arm64 --rm -v $(pwd)/minidlna-${{ matrix.settings.target }}:/minidlna debian ldd /minidlna/sbin/minidlnad
+        run: docker run --platform linux/arm64 --rm -v $(pwd)/sbin:/minidlna debian ldd /minidlna/minidlnad
         continue-on-error: true
 
       - name: Check dependencies
         if: startsWith(matrix.settings.os, 'ubuntu') && startsWith(matrix.settings.target, 'x86_64-linux')
-        run: ldd ./minidlna-${{ matrix.settings.target }}/sbin/minidlnad
+        run: ldd ./sbin/minidlnad
         continue-on-error: true
 
       - name: Check dependencies
         if: startsWith(matrix.settings.os, 'macos')
-        run: otool -L ./minidlna-${{ matrix.settings.target }}/sbin/minidlnad
+        run: otool -L ./sbin/minidlnad
         continue-on-error: true
 
       - name: Run --help
         if: matrix.settings.target == 'aarch64-linux-gnu'
-        run: docker run --platform linux/arm64 --rm -v $(pwd)/minidlna-${{ matrix.settings.target }}:/minidlna gcr.io/distroless/base-nossl-debian12 /minidlna/sbin/minidlnad --help
+        run: docker run --platform linux/arm64 --rm -v $(pwd)/sbin:/minidlna gcr.io/distroless/base-nossl-debian12 /minidlna/minidlnad --help
 
       - name: Run --help
         if: matrix.settings.target == 'aarch64-linux-musl'
-        run: docker run --platform linux/arm64 --rm -v $(pwd)/minidlna-${{ matrix.settings.target }}:/minidlna gcr.io/distroless/static-debian12 /minidlna/sbin/minidlnad --help
+        run: docker run --platform linux/arm64 --rm -v $(pwd)/sbin:/minidlna gcr.io/distroless/static-debian12 /minidlna/minidlnad --help
 
       - name: Run --help
         if: matrix.settings.target != 'aarch64-linux-gnu' && matrix.settings.target != 'aarch64-linux-musl'
-        run: ./minidlna-${{ matrix.settings.target }}/sbin/minidlnad --help
+        run: ./sbin/minidlnad --help
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
