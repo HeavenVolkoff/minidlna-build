@@ -46,7 +46,7 @@ if [ "$(uname -m)" = "${TARGET%%-*}" ] && (case "$TARGET" in *linux*) exit 0 ;; 
   # Unfortunatly that means we only suport cuda in the same architecture as the host system
   # https://github.com/ziglang/zig/pull/10704#issuecomment-1023616464
   env_specific_arg+=(
-    --nvcc="clang-17 -target ${TARGET}"
+    --nvcc="clang-18 -target ${TARGET}"
     --enable-cuda-llvm
     --enable-ffnvcodec
     --disable-cuda-nvcc
@@ -146,7 +146,7 @@ if ! ./configure \
   --cxx=c++ \
   --strip=strip \
   --ranlib=ranlib \
-  --host-cc=clang-17 \
+  --host-cc=clang-18 \
   --windres="windres" \
   --pkg-config=pkg-config \
   --pkg-config-flags="--static" \
