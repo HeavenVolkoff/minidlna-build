@@ -1,7 +1,7 @@
 #!/usr/bin/env -S bash -euo pipefail
 
 # LLVM install path
-LLVM_PATH="/usr/lib/llvm-17"
+LLVM_PATH="/usr/lib/llvm-18"
 
 case "$TARGET" in
   *darwin*) ;;
@@ -19,9 +19,9 @@ echo "Download llvm compiler_rt..."
 
 mkdir -p "${LLVM_PATH}/compiler_rt/build"
 
-curl_tar 'https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/cmake-17.0.6.src.tar.xz' \
+curl_tar 'https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/cmake-18.1.8.src.tar.xz' \
   "${LLVM_PATH}/cmake" 1
-curl_tar 'https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/compiler-rt-17.0.6.src.tar.xz' \
+curl_tar 'https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/compiler-rt-18.1.8.src.tar.xz' \
   "${LLVM_PATH}/compiler_rt" 1
 
 # Link cmake files to where compiler_rt expect to find them
@@ -42,7 +42,7 @@ cmake_config=(
   -DLLVM_CONFIG_PATH="${LLVM_PATH}/bin/llvm-config"
   -DLLVM_MAIN_SRC_DIR="$LLVM_PATH"
   -DCMAKE_LINKER="$(command -v "${APPLE_TARGET:?}-ld")"
-  -DCMAKE_INSTALL_PREFIX="${LLVM_PATH}/lib/clang/17"
+  -DCMAKE_INSTALL_PREFIX="${LLVM_PATH}/lib/clang/18"
   -DCMAKE_TOOLCHAIN_FILE='/srv/toolchain.cmake'
   -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=Off
   -DCOMPILER_RT_ENABLE_IOS=Off
@@ -79,4 +79,4 @@ while IFS= read -r _lib; do
   if [ "$_arch" == 'aarch64' ]; then
     ln -s "${_lib_name}.a" "$(dirname "${_lib}")/${_lib_name}-arm64.a"
   fi
-done < <(find "${LLVM_PATH}/lib/clang/17/lib/darwin/" -name 'libclang_rt.*')
+done < <(find "${LLVM_PATH}/lib/clang/18/lib/darwin/" -name 'libclang_rt.*')
