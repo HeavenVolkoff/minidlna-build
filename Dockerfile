@@ -29,12 +29,12 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt `
 	apt-get update && apt-get upgrade && apt-get install -y ca-certificates
 
-# Add LLVM 17 repository
+# Add LLVM 19 repository
 ADD https://apt.llvm.org/llvm-snapshot.gpg.key /etc/apt/trusted.gpg.d/apt.llvm.org.asc
 
 RUN chmod 644 /etc/apt/trusted.gpg.d/apt.llvm.org.asc
 
-RUN echo "deb https://apt.llvm.org/bookworm/ llvm-toolchain-bookworm-17 main" `
+RUN echo "deb https://apt.llvm.org/bookworm/ llvm-toolchain-bookworm-19 main" `
 	> /etc/apt/sources.list.d/llvm.list
 
 # Install build dependencies
@@ -46,13 +46,13 @@ RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/
 	make `
 	patch `
 	rsync `
-	lld-17 `
+	lld-19 `
 	libtool `
 	python3 `
 	gettext `
-	llvm-17 `
+	llvm-19 `
 	autoconf `
-	clang-17 `
+	clang-19 `
 	autopoint `
 	pkg-config `
 	ninja-build `
@@ -192,7 +192,7 @@ FROM layer-00 AS layer-10
 
 COPY --from=layer-10-bsd-compat-header "${PREFIX}/." "$PREFIX"
 COPY --from=layer-10-sse2neon "${PREFIX}/." "$PREFIX"
-COPY --from=layer-10-compiler-rt "/usr/lib/llvm-17/lib/clang/17/." '/usr/lib/llvm-17/lib/clang/17'
+COPY --from=layer-10-compiler-rt "/usr/lib/llvm-19/lib/clang/19/." '/usr/lib/llvm-19/lib/clang/19'
 
 #--
 
