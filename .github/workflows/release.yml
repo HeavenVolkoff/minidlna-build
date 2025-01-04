@@ -107,9 +107,7 @@ jobs:
           name: minidlna-${{ matrix.settings.target }}
 
       - name: Extract artifact
-        run: |-
-          tar -xJf minidlna-${{ matrix.settings.target }}.tar.xz
-          ls -R
+        run: tar -xJf minidlna-${{ matrix.settings.target }}.tar.xz
 
       - name: Check dependencies
         if: startsWith(matrix.settings.target, 'aarch64-linux')
@@ -128,15 +126,15 @@ jobs:
 
       - name: Run --help
         if: matrix.settings.target == 'aarch64-linux-gnu'
-        run: docker run --platform linux/arm64 --rm -v $(pwd)/sbin:/minidlna gcr.io/distroless/base-nossl-debian12 /minidlna/minidlnad --help
+        run: docker run --platform linux/arm64 --rm -v $(pwd)/sbin:/minidlna gcr.io/distroless/base-nossl-debian12 /minidlna/minidlnad -V
 
       - name: Run --help
         if: matrix.settings.target == 'aarch64-linux-musl'
-        run: docker run --platform linux/arm64 --rm -v $(pwd)/sbin:/minidlna gcr.io/distroless/static-debian12 /minidlna/minidlnad --help
+        run: docker run --platform linux/arm64 --rm -v $(pwd)/sbin:/minidlna gcr.io/distroless/static-debian12 /minidlna/minidlnad -V
 
       - name: Run --help
         if: matrix.settings.target != 'aarch64-linux-gnu' && matrix.settings.target != 'aarch64-linux-musl'
-        run: ./sbin/minidlnad --help
+        run: ./sbin/minidlnad -V
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
