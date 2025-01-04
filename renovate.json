@@ -22,36 +22,24 @@
   "rebaseLabel": "renovate/rebase",
   "stopUpdatingLabel": "renovate/stop-updating",
   "major": {
-    "labels": [
-      "bump/major"
-    ]
+    "labels": ["bump/major"]
   },
   "minor": {
-    "labels": [
-      "bump/minor"
-    ]
+    "labels": ["bump/minor"]
   },
   "patch": {
-    "labels": [
-      "bump/patch"
-    ]
+    "labels": ["bump/patch"]
   },
   "pin": {
-    "labels": [
-      "bump/pin"
-    ]
+    "labels": ["bump/pin"]
   },
   "digest": {
-    "labels": [
-      "bump/digest"
-    ]
+    "labels": ["bump/digest"]
   },
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": [
-        "^stages/.*\\.sh$"
-      ],
+      "fileMatch": ["^stages/.*\\.sh$"],
       "matchStrings": [
         "#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?( registryUrl=(?<registryUrl>.*?))?\\n_tag='(?<currentValue>.*)'\\s"
       ],
@@ -59,9 +47,7 @@
     },
     {
       "customType": "regex",
-      "fileMatch": [
-        "^stages/.*\\.sh$"
-      ],
+      "fileMatch": ["^stages/.*\\.sh$"],
       "matchStrings": [
         "#\\s*renovate:\\s*depName=(?<depName>.*?)\\n_commit='(?<currentValue>)(?<currentDigest>.*?)'"
       ],
@@ -70,9 +56,7 @@
     },
     {
       "customType": "regex",
-      "fileMatch": [
-        "^Dockerfile$"
-      ],
+      "fileMatch": ["^Dockerfile$"],
       "matchStrings": [
         "#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?( registryUrl=(?<registryUrl>.*?))?\\n(ENV|ARG) .*?_VERSION='(?<currentValue>.*)'\\s"
       ],
@@ -98,52 +82,36 @@
       "extractVersion": "^v(?<version>.+)$"
     },
     {
-      "matchPackageNames": [
-        "mm2/Little-CMS"
-      ],
+      "matchPackageNames": ["mm2/Little-CMS"],
       "extractVersion": "^lcms(?<version>.+)$"
     },
     {
-      "matchPackageNames": [
-        "FFmpeg/nv-codec-headers"
-      ],
+      "matchPackageNames": ["FFmpeg/nv-codec-headers"],
       "extractVersion": "^n(?<version>.+)$"
     },
     {
-      "matchPackageNames": [
-        "sekrit-twc/zimg"
-      ],
+      "matchPackageNames": ["sekrit-twc/zimg"],
       "extractVersion": "^release-(?<version>.+)$"
     },
     {
-      "matchPackageNames": [
-        "bblanchon/pdfium-binaries"
-      ],
+      "matchPackageNames": ["bblanchon/pdfium-binaries"],
       "extractVersion": "^chromium/(?<version>.+)$"
     },
     {
-      "matchPackageNames": [
-        "intel/libva"
-      ],
+      "matchPackageNames": ["intel/libva"],
       "extractVersion": "^(?<version>\\d+\\.\\d+\\.\\d+)$"
     },
     {
-      "matchPackageNames": [
-        "intel/libvpl"
-      ],
+      "matchPackageNames": ["intel/libvpl"],
       "extractVersion": "^v(?<version>\\d+\\.\\d+\\.\\d+)$",
       "allowedVersions": "!/^v202(0|1|2|3)(\\.\\d+)*$/"
     },
     {
-      "matchPackageNames": [
-        "mesa/drm"
-      ],
+      "matchPackageNames": ["mesa/drm"],
       "extractVersion": "^libdrm-(?<version>.+)$"
     },
     {
-      "matchPackageNames": [
-        "xorg/lib/libpciaccess"
-      ],
+      "matchPackageNames": ["xorg/lib/libpciaccess"],
       "extractVersion": "^libpciaccess-(?<version>.+)$"
     }
   ]

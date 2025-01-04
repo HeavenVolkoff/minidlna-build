@@ -3,7 +3,7 @@
 echo "Download ffmpegthumbnailer..."
 mkdir -p ffmpegthumbnailer
 
-# renovate: datasource=gitlab-releases depName=dirkvdb/ffmpegthumbnailer
+# renovate: datasource=github-releases depName=dirkvdb/ffmpegthumbnailer
 _tag='2.2.3'
 
 curl_tar "https://github.com/dirkvdb/ffmpegthumbnailer/archive/refs/tags/${_tag}.tar.gz" ffmpegthumbnailer 1
