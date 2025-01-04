@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-minidlna:
+  build:
     strategy:
       matrix:
         settings:
@@ -77,7 +77,7 @@ jobs:
           if-no-files-found: warn
 
   test:
-    needs: build-minidlna
+    needs: build
     strategy:
       matrix:
         settings:
@@ -109,30 +109,30 @@ jobs:
       - name: Extract artifact
         run: tar -xJf minidlna-${{ matrix.settings.target }}.tar.xz
 
-      - name: Check dependencies
+      - name: Check shared dependencies
         if: startsWith(matrix.settings.target, 'aarch64-linux')
         run: docker run --platform linux/arm64 --rm -v $(pwd)/sbin:/minidlna debian ldd /minidlna/minidlnad
         continue-on-error: true
 
-      - name: Check dependencies
+      - name: Check shared dependencies
         if: startsWith(matrix.settings.os, 'ubuntu') && startsWith(matrix.settings.target, 'x86_64-linux')
         run: ldd ./sbin/minidlnad
         continue-on-error: true
 
-      - name: Check dependencies
+      - name: Check shared dependencies
         if: startsWith(matrix.settings.os, 'macos')
         run: otool -L ./sbin/minidlnad
         continue-on-error: true
 
-      - name: Run --help
+      - name: Run minidlnad -V
         if: matrix.settings.target == 'aarch64-linux-gnu'
         run: docker run --platform linux/arm64 --rm -v $(pwd)/sbin:/minidlna gcr.io/distroless/base-nossl-debian12 /minidlna/minidlnad -V
 
-      - name: Run --help
+      - name: Run minidlnad -V
         if: matrix.settings.target == 'aarch64-linux-musl'
         run: docker run --platform linux/arm64 --rm -v $(pwd)/sbin:/minidlna gcr.io/distroless/static-debian12 /minidlna/minidlnad -V
 
-      - name: Run --help
+      - name: Run minidlnad -V
         if: matrix.settings.target != 'aarch64-linux-gnu' && matrix.settings.target != 'aarch64-linux-musl'
         run: ./sbin/minidlnad -V
 
@@ -140,7 +140,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     name: Create Release
-    needs: build-minidlna
+    needs: test
     permissions:
       contents: write
     steps:
