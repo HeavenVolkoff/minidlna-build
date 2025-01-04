@@ -32,9 +32,12 @@ export LDFLAGS="${LDFLAGS:-} $(pkg-config --static --libs libavformat libavcodec
 ./configure \
   $(
     case "$TARGET" in
-      *linux*)
+      *linux-musl)
         echo "--host=${TARGET}"
         echo '--enable-static'
+        ;;
+      *linux-gnu)
+        echo "--host=${TARGET}"
         ;;
       x86_64-darwin* | aarch64-darwin*)
         echo "--host=${APPLE_TARGET}"
