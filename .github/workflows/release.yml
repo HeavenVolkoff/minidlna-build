@@ -97,7 +97,7 @@ jobs:
     steps:
       - name: Set up QEMU
         if: startsWith(matrix.settings.target, 'aarch64-linux')
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: linux/arm64
 
