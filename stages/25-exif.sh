@@ -4,7 +4,7 @@ echo "Download exif..."
 mkdir -p exif
 
 # renovate: datasource=github-releases depName=libexif/libexif
-_tag='0.6.24'
+_tag='0.6.25'
 
 curl_tar "https://github.com/libexif/libexif/archive/refs/tags/v${_tag}.tar.gz" exif 1
 
