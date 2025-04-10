@@ -34,20 +34,23 @@ cd lzma/build
 echo "Build lzma..."
 
 cmake \
-  -DENABLE_SMALL=On \
-  -DBUILD_TESTING=Off \
-  -DCREATE_XZ_SYMLINKS=Off \
-  -DCREATE_LZMA_SYMLINKS=Off \
+  -DXZ_SMALL=On \
   -DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=On \
+  -DXZ_NLS=Off \
+  -DXZ_DOC=Off \
+  -DXZ_TOOL_XZ=Off \
+  -DXZ_DOXYGEN=Off \
+  -DXZ_TOOL_XZDEC=Off \
+  -DXZ_TOOL_XZDEC=Off \
+  -DXZ_TOOL_LZMADEC=Off \
+  -DXZ_TOOL_SCRIPTS=Off \
+  -DXZ_TOOL_LZMAINFO=Off \
+  -DXZ_TOOL_SYMLINKS=Off \
+  -DXZ_MICROLZMA_ENCODER=Off \
+  -DXZ_MICROLZMA_DECODER=Off \
+  -DXZ_TOOL_SYMLINKS_LZMA=Off \
   ..
 
 ninja -j"$(nproc)" liblzma
-
-mkdir -p ../doc/examples
-case "$TARGET" in
-  *)
-    touch xz xzdec lzmadec lzmainfo
-    ;;
-esac
 
 ninja install
