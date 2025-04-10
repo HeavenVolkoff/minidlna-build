@@ -4,7 +4,7 @@ echo "Download flac..."
 mkdir -p flac
 
 # renovate: datasource=github-releases depName=xiph/flac versioning=semver-coerced
-_tag='1.4.3'
+_tag='1.5.0'
 
 curl_tar "https://github.com/xiph/flac/releases/download/${_tag}/flac-${_tag}.tar.xz" flac 1
 
