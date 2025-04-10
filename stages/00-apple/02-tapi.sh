@@ -9,8 +9,8 @@ case "$TARGET" in
     ;;
 esac
 
-export CC="clang"
-export CXX="clang++"
+export CC="clang-19"
+export CXX="clang++-19"
 export CFLAGS="-I${CCTOOLS}/include"
 export LDFLAGS="-L${CCTOOLS}/lib"
 export APPLE_TARGET='__BYPASS__'

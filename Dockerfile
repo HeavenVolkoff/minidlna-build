@@ -170,9 +170,6 @@ COPY --chmod=0750 ./scripts/meson.sh "${SYSROOT}/wrapper/meson"
 # Create a clang wrapper script for when building with the host compiler is necessary
 COPY --chmod=0750 ./scripts/clang.sh "${SYSROOT}/wrapper/clang"
 
-# Create a clang wrapper script for when building with the host compiler is necessary
-COPY --chmod=0750 ./scripts/clang.sh "${SYSROOT}/wrapper/clang++"
-
 # Wrapper script that pre-configure autotools and build flags fro each target
 COPY --chmod=0750 ./scripts/build.sh /srv/build.sh
 
