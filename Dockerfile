@@ -90,7 +90,7 @@ ARG CMAKE_VERSION
 RUN --mount=type=cache,target=/root/.cache `
 	curl_tar "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION:?}/cmake-${CMAKE_VERSION:?}-linux-$(uname -m).tar.gz" "$SYSROOT" 1
 
-# Download and install meson, with a patch to add zig support
+# Download and install meson
 ARG MESON_VERSION
 RUN --mount=type=cache,target=/root/.cache `
 	curl_tar "https://github.com/mesonbuild/meson/archive/refs/tags/${MESON_VERSION:?}.tar.gz" /srv/meson 1
