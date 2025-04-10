@@ -15,7 +15,6 @@ case "$TARGET" in
     ;;
 esac
 
-sed -i "/subdir('testbed')/d" lcms/meson.build
 sed -i "/subdir('plugins')/d" lcms/meson.build
 
 # Remove some superfluous files
@@ -31,7 +30,7 @@ echo "Build lcms..."
 meson \
   --errorlogs \
   -Dutils=false \
-  -Dsamples=false \
+  -Dtests=disabled \
   -Dthreaded=false \
   -Dfastfloat=false \
   ..
