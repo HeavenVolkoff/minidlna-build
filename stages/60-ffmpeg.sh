@@ -3,31 +3,36 @@
 echo "Download ffmpeg..."
 mkdir -p ffmpeg
 
-curl_tar 'https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n7.1.tar.gz' ffmpeg 1
+_version="7.1.1"
+
+curl_tar "https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n${_version}.tar.gz" ffmpeg 1
 
 # Handbreak patches
 for patch in \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A01-mov-read-name-track-tag-written-by-movenc.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A02-movenc-write-3gpp-track-titl-tag.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A03-mov-read-3gpp-udta-tags.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A04-movenc-write-3gpp-track-names-tags-for-all-available.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A05-avformat-mov-add-support-audio-fallback-track-ref.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A06-dvdsubdec-fix-processing-of-partial-packets.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A07-dvdsubdec-return-number-of-bytes-used.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A08-dvdsubdec-use-pts-of-initial-packet.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A09-dvdsubdec-add-an-option-to-output-subtitles-with-emp.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A10-ccaption_dec-fix-pts-in-real_time-mode.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A11-avformat-matroskaenc-return-error-if-aac-extradata-c.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A12-videotoolbox-disable-H.264-10-bit-on-Intel-macOS-it-.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A13-libswscale-fix-yuv420p-to-p01xle-color-conversion-bu.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A14-hevc_mp4toannexb.c-fix-qsv-decode-of-10bit-hdr.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A15-Expose-the-unmodified-Dolby-Vision-RPU-T35-buffers.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A16-avcodec-amfenc-Add-support-for-on-demand-key-frames.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A17-avcodec-amfenc-properly-set-primaries-transfer-and-m.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A18-Revert-avcodec-amfenc-GPU-driver-version-check.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A19-lavc-pgssubdec-Add-graphic-plane-and-cropping.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A28-enable-av1_mf-encoder.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/ed8cbd1/contrib/ffmpeg/A29-Revert-lavc-Check-codec_whitelist-early-in-avcodec_o.patch'; do
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A01-mov-read-name-track-tag-written-by-movenc.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A02-movenc-write-3gpp-track-titl-tag.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A03-mov-read-3gpp-udta-tags.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A04-movenc-write-3gpp-track-names-tags-for-all-available.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A05-avformat-mov-add-support-audio-fallback-track-ref.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A06-dvdsubdec-fix-processing-of-partial-packets.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A07-dvdsubdec-return-number-of-bytes-used.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A08-dvdsubdec-use-pts-of-initial-packet.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A09-dvdsubdec-add-an-option-to-output-subtitles-with-emp.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A10-ccaption_dec-fix-pts-in-real_time-mode.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A11-avformat-matroskaenc-return-error-if-aac-extradata-c.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A13-libswscale-fix-yuv420p-to-p01xle-color-conversion-bu.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A15-Expose-the-unmodified-Dolby-Vision-RPU-T35-buffers.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A16-avcodec-amfenc-Add-support-for-on-demand-key-frames.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A17-avcodec-amfenc-properly-set-primaries-transfer-and-m.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A18-libavcodec-qsvenc-update-has_b_frames-value.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A19-libavcodec-qsv-enable-av1-scc.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A20-Revert-avcodec-amfenc-GPU-driver-version-check.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A21-lavc-pgssubdec-Add-graphic-plane-and-cropping.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A23-avformat-movenc-write-iTunEXTC-and-iTunMOVI-metadata.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A24-videotoolbox-speedup-decoding.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A28-enable-av1_mf-encoder.patch' \
+  'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A30-qsv-fixed-BT2020-BT709-conversion.patch' \
+  'https://github.com/FFmpeg/FFmpeg/commit/d1ed5c06e3edc5f2b5f3664c80121fa55b0baa95.patch'; do
   curl "$patch" | patch -F5 -lp1 -d ffmpeg -t
 done
 
@@ -46,7 +51,7 @@ if [ "$(uname -m)" = "${TARGET%%-*}" ] && (case "$TARGET" in *linux*) exit 0 ;; 
   # Unfortunatly that means we only suport cuda in the same architecture as the host system
   # https://github.com/ziglang/zig/pull/10704#issuecomment-1023616464
   env_specific_arg+=(
-    --nvcc="clang-19 -target ${TARGET}"
+    --nvcc="clang -target ${TARGET}"
     --enable-cuda-llvm
     --enable-ffnvcodec
     --disable-cuda-nvcc
@@ -146,7 +151,7 @@ if ! ./configure \
   --cxx=c++ \
   --strip=strip \
   --ranlib=ranlib \
-  --host-cc=clang-19 \
+  --host-cc=clang \
   --windres="windres" \
   --pkg-config=pkg-config \
   --pkg-config-flags="--static" \

@@ -18,8 +18,8 @@ echo "APPLE_TARGET=$_target" >>/etc/environment
 
 apt-get install uuid-dev libedit-dev
 
-export CC="clang-19"
-export CXX="clang++-19"
+export CC="clang"
+export CXX="clang++"
 export CFLAGS="-I${CCTOOLS}/include"
 export LDFLAGS="-L${CCTOOLS}/lib"
 export APPLE_TARGET='__BYPASS__'

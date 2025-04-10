@@ -62,7 +62,7 @@ export CFLAGS="${CFLAGS:-} \
   --enable-rtree \
   --disable-shared
 
-make TCC=cc BCC=clang-19 -j"$(nproc)" lib_install sqlite3.h sqlite3.pc
+make TCC=cc BCC=clang -j"$(nproc)" lib_install sqlite3.h sqlite3.pc
 
 install -d "${PREFIX}/include"
 install -m 0644 sqlite3.h "${PREFIX}/include"
