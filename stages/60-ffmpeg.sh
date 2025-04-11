@@ -3,6 +3,7 @@
 echo "Download ffmpeg..."
 mkdir -p ffmpeg
 
+# renovate: datasource=github-tags depName=FFmpeg/FFmpeg versioning=semver-coerced
 _version="7.1.1"
 
 curl_tar "https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n${_version}.tar.gz" ffmpeg 1
@@ -33,7 +34,7 @@ for patch in \
   'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A28-enable-av1_mf-encoder.patch' \
   'https://github.com/HandBrake/HandBrake/raw/908b7b4/contrib/ffmpeg/A30-qsv-fixed-BT2020-BT709-conversion.patch' \
   'https://github.com/FFmpeg/FFmpeg/commit/d1ed5c06e3edc5f2b5f3664c80121fa55b0baa95.patch'; do
-  curl "$patch" | patch -F5 -lp1 -d ffmpeg -t
+  curl "$patch" | patch -F5 -lp1 -d ffmpeg -f
 done
 
 # Backup source

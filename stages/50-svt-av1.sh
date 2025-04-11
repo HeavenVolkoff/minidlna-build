@@ -10,7 +10,7 @@ curl_tar "https://gitlab.com/AOMediaCodec/SVT-AV1/-/archive/v${_tag}/SVT-AV1-v${
 
 # Handbreak patches
 curl 'https://github.com/HandBrake/HandBrake/raw/f9e7678/contrib/svt-av1/A01-Enable-Neon-DotProd-and-I8MM-on-Windows.patch' \
-  | patch -F5 -lp1 -d svt-av1 -t
+  | patch -F5 -lp1 -d svt-av1 -f
 
 # Add flag required by zig to compile some of the AVX512 instructions used by SVT-AV1
 sed -i '/-mavx2/a \    -mevex512' svt-av1/Source/Lib/ASM_AVX512/CMakeLists.txt

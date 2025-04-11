@@ -13,7 +13,7 @@ curl_tar "https://code.videolan.org/videolan/x264/-/archive/${_commit}/x264.tar.
 for patch in \
   'https://github.com/msys2/MINGW-packages/raw/f4bd368/mingw-w64-x264/0001-beautify-pc.all.patch' \
   'https://github.com/msys2/MINGW-packages/raw/f4bd368/mingw-w64-x264/0003-pkgconfig-add-Cflags-private.patch'; do
-  curl "$patch" | patch -F5 -lp1 -d x264 -t
+  curl "$patch" | patch -F5 -lp1 -d x264 -f
 done
 
 case "$TARGET" in

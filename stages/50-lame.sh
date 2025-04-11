@@ -13,7 +13,7 @@ curl_tar 'https://github.com/mesonbuild/wrapdb/releases/download/lame_3.100-9/la
 
 # Fix warning on 64 bit machines. explicitly set variables as unsigned ints.
 curl 'https://sources.debian.org/data/main/l/lame/3.100-6/debian/patches/07-field-width-fix.patch' \
-  | patch -F5 -lp1 -d lame -t
+  | patch -F5 -lp1 -d lame -f
 
 # Remove some superfluous files
 rm -rf lame/{acinclude.m4,config.h.in,testcase.mp3,install-sh,Makefile.MSVC,Makefile.unix,config.rpath,depcomp,Makefile.in,config.sub,configure.in,config.guess,testcase.wav,debian,macosx,Dll,misc,vc_solution,dshow,mac,ltmain.sh,doc,aclocal.m4,frontend,ACM,configure}
