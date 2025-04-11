@@ -26,6 +26,7 @@ cmake \
   -DINSTALL_DOCS=Off \
   -DBUILD_EXAMPLES=Off \
   -WITH_LSR_BINDINGS=On \
+  -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
   ..
 
 ninja -j"$(nproc)"

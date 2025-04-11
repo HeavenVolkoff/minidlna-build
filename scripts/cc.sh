@@ -101,11 +101,6 @@ while [ "$#" -gt 0 ]; do
   elif [ "$1" = '-lgcc_s' ]; then
     # Replace libgcc_s with libunwind
     argv+=('-lunwind')
-  elif [ "$1" == '-lgcc_eh' ]; then
-    # zig doesn't provide gcc_eh alternative
-    # https://github.com/ziglang/zig/issues/17268
-    # We use libc++ to replace it
-    argv+=('-lc++')
   elif [ "$1" = '-fno-lto' ]; then
     # Zig dont respect -fno-lto when -flto is set, so keep track of it here and strip it if needed
     lto='-fno-lto'
