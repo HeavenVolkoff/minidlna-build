@@ -21,7 +21,7 @@ mkdir -p lzo/build
 cd lzo/build
 
 echo "Build lzo..."
-cmake ..
+cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
 
 ninja -j"$(nproc)"
 
