@@ -40,6 +40,7 @@ RUN echo "deb https://apt.llvm.org/bookworm/ llvm-toolchain-bookworm-19 main" `
 # Install build dependencies
 RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt `
 	apt-get update && apt-get install `
+	jq `
 	tcl `
 	nasm `
 	curl `
@@ -315,11 +316,7 @@ RUN --mount=type=cache,target=/root/.cache `
 FROM layer-25 AS layer-45-opencl
 
 RUN --mount=type=cache,target=/root/.cache `
-	--mount=type=bind,source=stages/45-opencl/25-opencl-headers.sh,target=/srv/stage.sh `
-	/srv/build.sh
-
-RUN --mount=type=cache,target=/root/.cache `
-	--mount=type=bind,source=stages/45-opencl/45-opencl.sh,target=/srv/stage.sh `
+	--mount=type=bind,source=stages/45-opencl.sh,target=/srv/stage.sh `
 	/srv/build.sh
 
 FROM layer-25 AS layer-45-sharpyuv
@@ -415,9 +412,6 @@ RUN --mount=type=cache,target=/root/.cache `
 
 FROM layer-45 AS layer-50-vulkan
 
-RUN --mount=type=cache,target=/root/.cache `
-	--mount=type=bind,source=stages/50-vulkan/45-vulkan.sh,target=/srv/stage.sh `
-	/srv/build.sh
 RUN --mount=type=cache,target=/root/.cache `
 	--mount=type=bind,source=stages/50-vulkan/50-shaderc.sh,target=/srv/stage.sh `
 	/srv/build.sh
