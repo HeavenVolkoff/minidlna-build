@@ -17,7 +17,7 @@ curl_tar "https://github.com/haasn/libplacebo/archive/refs/tags/v${_tag}.tar.gz"
 # Third party deps
 
 # renovate: datasource=github-releases depName=pallets/jinja
-_tag='3.1.4'
+_tag='3.1.6'
 curl_tar "https://github.com/pallets/jinja/archive/refs/tags/${_tag}.tar.gz" placebo/3rdparty/jinja 1
 
 # renovate: datasource=github-releases depName=pallets/markupsafe
