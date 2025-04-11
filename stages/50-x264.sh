@@ -4,7 +4,7 @@ echo "Download x264..."
 mkdir -p x264
 
 # renovate: depName=https://code.videolan.org/videolan/x264.git
-_commit='373697b467f7cd0af88f1e9e32d4f10540df4687'
+_commit='32c3b801191522961102d4bea292cdb61068d0dd'
 
 # Using master due to aarch64 improvements
 curl_tar "https://code.videolan.org/videolan/x264/-/archive/${_commit}/x264.tar.bz2" x264 1
@@ -64,6 +64,12 @@ env RC="$WINDRES" ./configure \
   --enable-static \
   --bit-depth=all \
   --chroma-format=all \
+  --disable-lavf \
+  --disable-ffms \
+  --disable-avs \
+  --disable-swscale \
+  --disable-gpac \
+  --disable-lsmash \
   --disable-cli
 
 make -j"$(nproc)"
