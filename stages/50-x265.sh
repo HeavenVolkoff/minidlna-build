@@ -24,7 +24,7 @@ for patch in \
   'https://github.com/HandBrake/HandBrake/raw/2848a38/contrib/x265/A06-Simplify-macOS-cross-compilation.patch' \
   'https://github.com/HandBrake/HandBrake/raw/2848a38/contrib/x265/A07-add-new-matrix-coefficients-from-H.273-v3.patch' \
   'https://bitbucket.org/multicoreware/x265_git/commits/b354c009a60bcd6d7fc04014e200a1ee9c45c167/raw'; do
-  curl "$patch" | patch -F5 -lp1 -d x265 -t
+  curl "$patch" | patch -F5 -lp1 -d x265 -f
 done
 
 # Backup source

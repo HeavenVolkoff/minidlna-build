@@ -7,10 +7,62 @@ case "$TARGET" in
     ;;
 esac
 
+# renovate: datasource=github-releases depName=KhronosGroup/SPIRV-Cross
+_tag='1.4.309.0'
+
+# === Vulkan Headers ===
+
+echo "Download vulkan..."
+mkdir -p vulkan-headers
+
+curl_tar "https://github.com/KhronosGroup/Vulkan-Headers/archive/refs/tags/vulkan-sdk-${_tag}.tar.gz" vulkan-headers 1
+
+VERSION="$(
+  sed -nr \
+    's/#define\s+VK_HEADER_VERSION_COMPLETE\s+VK_MAKE_API_VERSION\(\s*[0-9]+,\s*([0-9]+),\s*([0-9]+),\s*VK_HEADER_VERSION\)/\1.\2/p' \
+    vulkan-headers/include/vulkan/vulkan_core.h
+).$(
+  sed -nr \
+    's/#define\s+VK_HEADER_VERSION\s+([0-9]+)/\1/p' \
+    vulkan-headers/include/vulkan/vulkan_core.h
+)"
+
+sed -i '/add_subdirectory(tests)/d'  vulkan-headers/CMakeLists.txt
+
+# Remove some superfluous files
+rm -rf vulkan-headers/{.reuse,.github,tests}
+
+# Backup source
+bak_src 'vulkan-headers'
+
+mkdir -p vulkan-headers/build
+cd vulkan-headers/build
+
+echo "Build vulkan..."
+cmake \
+  -DBUILD_TESTS=Off \
+  ..
+
+ninja -j"$(nproc)"
+
+ninja install
+
+cat >"$PREFIX"/lib/pkgconfig/vulkan.pc <<EOF
+prefix=$PREFIX
+includedir=\${prefix}/include
+
+Name: vulkan
+Version: $VERSION
+Description: Vulkan (Headers Only)
+Cflags: -I\${includedir}
+EOF
+
+# === SPIRV-Cross ===
+
 echo "Download spirv..."
 mkdir -p spirv
 
-curl_tar 'https://github.com/KhronosGroup/SPIRV-Cross/archive/refs/tags/vulkan-sdk-1.4.309.0.tar.gz' spirv 1
+curl_tar "https://github.com/KhronosGroup/SPIRV-Cross/archive/refs/tags/vulkan-sdk-${_tag}.tar.gz" spirv 1
 
 VERSION="$(
   grep -Po 'set\(spirv-cross-abi-major\s+\K\d+' spirv/CMakeLists.txt

@@ -10,20 +10,31 @@ esac
 echo "Download shaderc..."
 mkdir -p shaderc/third_party/{glslang,spirv-headers,spirv-tools}
 
+# renovate: depName=https://github.com/google/shaderc.git branch=known-good
+_commit='8ce49ebab88d35046e8076bd3bc5c9b34f744bd1'
+
 # All the version for the main package and third-party deps must match what is here:
-# https://github.com/google/shaderc/blob/known-good/known_good.json
-curl_tar 'https://github.com/google/shaderc/archive/0968768.tar.gz' shaderc 1
+while IFS=' = ' read -r repo commit; do
+  eval "${repo}_commit=${commit}"
+done < <(curl -LsS "https://github.com/google/shaderc/raw/${_commit}/known_good.json" \
+  | jq -r '
+  .commits[]
+  | select(.subrepo == "KhronosGroup/glslang" or .subrepo == "KhronosGroup/SPIRV-Headers" or .subrepo == "KhronosGroup/SPIRV-Tools" or .subrepo == "google/shaderc")
+  | "\(.subrepo | gsub("/"; "_") | gsub("-"; "_")) = '\''\(.commit)'\''"
+')
+
+curl_tar "https://github.com/google/shaderc/archive/${google_shaderc_commit:?Commit for shaderc is missing}.tar.gz" shaderc 1
 
 sed -ie 's|#!/usr/bin/env python|#!/usr/bin/env python3|' shaderc/utils/update_build_version.py
 
 # Thrid party deps
-curl_tar 'https://github.com/KhronosGroup/glslang/archive/8b822ee.tar.gz' shaderc/third_party/glslang 1
+curl_tar "https://github.com/KhronosGroup/glslang/archive/${KhronosGroup_glslang_commit:?Commit for glslang is missing}.tar.gz" shaderc/third_party/glslang 1
 cp -a shaderc/third_party/glslang/LICENSE.txt shaderc/LICENSE.glslang
 
-curl_tar 'https://github.com/KhronosGroup/SPIRV-Headers/archive/54a521d.tar.gz' shaderc/third_party/spirv-headers 1
+curl_tar "https://github.com/KhronosGroup/SPIRV-Headers/archive/${KhronosGroup_SPIRV_Headers_commit:?Commit for SPIRV Headers is missing}.tar.gz" shaderc/third_party/spirv-headers 1
 cp -a shaderc/third_party/spirv-headers/LICENSE shaderc/LICENSE.spirv-headers
 
-curl_tar 'https://github.com/KhronosGroup/SPIRV-Tools/archive/f289d04.tar.gz' shaderc/third_party/spirv-tools 1
+curl_tar "https://github.com/KhronosGroup/SPIRV-Tools/archive/${KhronosGroup_SPIRV_Tools_commit:?Commit for SPIRV Tools is missing}.tar.gz" shaderc/third_party/spirv-tools 1
 cp -a shaderc/third_party/spirv-tools/LICENSE shaderc/LICENSE.spirv-tools
 
 sed -i '/add_subdirectory(test)/d' shaderc/third_party/spirv-tools/CMakeLists.txt
