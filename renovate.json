@@ -39,7 +39,7 @@
       "customType": "regex",
       "fileMatch": ["^stages/.*\\.sh$"],
       "matchStrings": [
-        "#\\s*renovate:\\s*depName=(?<depName>.*?)\\n_commit='(?<currentValue>)(?<currentDigest>.*?)'"
+      "#\\s*renovate:\\s*depName=(?<depName>.*?)( branch=(?<currentValue>.*?))?\\n_commit='(?<currentDigest>.*?)'"
       ],
       "versioningTemplate": "git",
       "datasourceTemplate": "git-refs"
@@ -65,9 +65,9 @@
         "Fintel/libvpl",
         "xiph/opus",
         "AOMediaCodec/SVT-AV1",
-        "strukturag/libheif",
-        "protocolbuffers/protobuf",
-        "microsoft/onnxruntime"
+        "KhronosGroup/OpenCL-ICD-Loader",
+        "haasn/libplacebo",
+        "fastfloat/fast_float"
       ],
       "extractVersion": "^v(?<version>.+)$"
     },
@@ -84,17 +84,13 @@
       "extractVersion": "^release-(?<version>.+)$"
     },
     {
-      "matchPackageNames": ["bblanchon/pdfium-binaries"],
-      "extractVersion": "^chromium/(?<version>.+)$"
-    },
-    {
       "matchPackageNames": ["intel/libva"],
       "extractVersion": "^(?<version>\\d+\\.\\d+\\.\\d+)$"
     },
     {
       "matchPackageNames": ["intel/libvpl"],
       "extractVersion": "^v(?<version>\\d+\\.\\d+\\.\\d+)$",
-      "allowedVersions": "!/^v202(0|1|2|3)(\\.\\d+)*$/"
+      "allowedVersions": "!/^202(0|1|2|3)(\\.\\d+)*$/"
     },
     {
       "matchPackageNames": ["mesa/drm"],
@@ -103,6 +99,15 @@
     {
       "matchPackageNames": ["xorg/lib/libpciaccess"],
       "extractVersion": "^libpciaccess-(?<version>.+)$"
+    },
+    {
+      "matchPackageNames": ["KhronosGroup/SPIRV-Cross"],
+      "extractVersion": "^vulkan-sdk-(?<version>.+)$"
+    },
+    {
+      "matchPackageNames": ["FFmpeg/FFmpeg"],
+      "extractVersion": "^n(?<version>.+)$",
+      "allowedVersions": "!/^n\\d+(\\.\\d+)+$/"
     }
   ]
 }

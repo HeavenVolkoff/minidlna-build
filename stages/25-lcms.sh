@@ -11,7 +11,7 @@ curl_tar "https://github.com/mm2/Little-CMS/releases/download/lcms${_tag}/lcms2-
 case "$TARGET" in
   aarch64*)
     # Patch to enable SSE codepath on aarch64
-    patch -F5 -lp1 -d lcms -t <"$PREFIX"/patches/sse2neon.patch
+    patch -F5 -lp1 -d lcms -f <"$PREFIX"/patches/sse2neon.patch
     ;;
 esac
 

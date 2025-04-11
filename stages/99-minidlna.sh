@@ -10,7 +10,7 @@ _commit='33da136af3e71abb5cd6250720c522e9deb8cf1f'
 curl_tar "https://github.com/NathanaelA/minidlna/archive/${_commit}.tar.gz" minidlna 1
 
 for patch in "$PREFIX"/patches/*; do
-  patch -F5 -lp1 -d minidlna -t <"$patch"
+  patch -F5 -lp1 -d minidlna -f <"$patch"
 done
 
 # Remove unused components
