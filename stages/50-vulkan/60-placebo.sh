@@ -25,7 +25,7 @@ _tag='2.1.5'
 curl_tar "https://github.com/pallets/markupsafe/archive/refs/tags/${_tag}.tar.gz" placebo/3rdparty/markupsafe 1
 
 # renovate: datasource=github-releases depName=fastfloat/fast_float
-_tag='6.1.1'
+_tag='8.0.2'
 curl_tar "https://github.com/fastfloat/fast_float/archive/refs/tags/v${_tag}.tar.gz" placebo/3rdparty/fast_float 1
 
 # Remove some superfluous files
