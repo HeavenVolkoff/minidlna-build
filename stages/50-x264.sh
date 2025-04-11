@@ -64,6 +64,12 @@ env RC="$WINDRES" ./configure \
   --enable-static \
   --bit-depth=all \
   --chroma-format=all \
+  --disable-lavf \
+  --disable-ffms \
+  --disable-avs \
+  --disable-swscale \
+  --disable-gpac \
+  --disable-lsmash \
   --disable-cli
 
 make -j"$(nproc)"
