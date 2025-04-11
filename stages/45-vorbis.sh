@@ -21,6 +21,7 @@ echo "Build vorbis..."
 cmake \
   -DBUILD_TESTING=Off \
   -DINSTALL_CMAKE_PACKAGE_MODULE=On \
+  -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
   ..
 
 ninja -j"$(nproc)"

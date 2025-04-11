@@ -3,7 +3,9 @@ echo "Download opencl..."
 
 mkdir -p opencl
 
-curl_tar 'https://github.com/KhronosGroup/OpenCL-ICD-Loader/archive/refs/tags/v2023.12.14.tar.gz' opencl 1
+_tag='2024.10.24'
+
+curl_tar "https://github.com/KhronosGroup/OpenCL-ICD-Loader/archive/refs/tags/v${_tag}.tar.gz" opencl 1
 
 # Remove some superfluous files
 rm -rf opencl/{.github,test}

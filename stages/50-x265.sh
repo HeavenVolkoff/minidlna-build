@@ -22,7 +22,8 @@ for patch in \
   'https://github.com/HandBrake/HandBrake/raw/2848a38/contrib/x265/A04-implement-ambient-viewing-environment-sei.patch' \
   'https://github.com/HandBrake/HandBrake/raw/2848a38/contrib/x265/A05-Fix-Dolby-Vision-RPU-memory-management.patch' \
   'https://github.com/HandBrake/HandBrake/raw/2848a38/contrib/x265/A06-Simplify-macOS-cross-compilation.patch' \
-  'https://github.com/HandBrake/HandBrake/raw/2848a38/contrib/x265/A07-add-new-matrix-coefficients-from-H.273-v3.patch'; do
+  'https://github.com/HandBrake/HandBrake/raw/2848a38/contrib/x265/A07-add-new-matrix-coefficients-from-H.273-v3.patch' \
+  'https://bitbucket.org/multicoreware/x265_git/commits/b354c009a60bcd6d7fc04014e200a1ee9c45c167/raw'; do
   curl "$patch" | patch -F5 -lp1 -d x265 -t
 done
 
@@ -44,6 +45,7 @@ common_config=(
   -DENABLE_SHARED=Off
   -DENABLE_SVT_HEVC=Off
   -DCMAKE_ASM_NASM_FLAGS=-w-macro-params-legacy
+  -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 )
 
 case "$TARGET" in
@@ -102,5 +104,3 @@ END
 EOF
 
 ninja install
-
-sed -ri 's/^(Libs.private:.*)$/\1 -lstdc++/' "${PREFIX}/lib/pkgconfig/x265.pc"

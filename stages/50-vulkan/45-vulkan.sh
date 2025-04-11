@@ -10,7 +10,7 @@ esac
 echo "Download vulkan..."
 mkdir -p vulkan-headers
 
-curl_tar 'https://github.com/KhronosGroup/Vulkan-Headers/archive/refs/tags/vulkan-sdk-1.3.283.0.tar.gz' vulkan-headers 1
+curl_tar 'https://github.com/KhronosGroup/Vulkan-Headers/archive/refs/tags/vulkan-sdk-1.4.309.0.tar.gz' vulkan-headers 1
 
 VERSION="$(
   sed -nr \
@@ -21,6 +21,8 @@ VERSION="$(
     's/#define\s+VK_HEADER_VERSION\s+([0-9]+)/\1/p' \
     vulkan-headers/include/vulkan/vulkan_core.h
 )"
+
+sed -i '/add_subdirectory(tests)/d'  vulkan-headers/CMakeLists.txt
 
 # Remove some superfluous files
 rm -rf vulkan-headers/{.reuse,.github,tests}
