@@ -12,19 +12,21 @@ mkdir -p placebo
 
 # renovate: datasource=github-releases depName=haasn/libplacebo
 _tag='7.349.0'
-# renovate: datasource=github-releases depName=pallets/jinja
-jinja_tag='3.1.4'
-# renovate: datasource=github-releases depName=pallets/markupsafe
-markupsafe_tag='2.1.5'
-# renovate: datasource=github-releases depName=fastfloat/fast_float
-fast_float_tag='6.1.1'
-
 curl_tar "https://github.com/haasn/libplacebo/archive/refs/tags/v${_tag}.tar.gz" placebo 1
 
 # Third party deps
-curl_tar "https://github.com/pallets/jinja/archive/refs/tags/${jinja_tag}.tar.gz" placebo/3rdparty/jinja 1
-curl_tar "https://github.com/pallets/markupsafe/archive/refs/tags/${markupsafe_tag}.tar.gz" placebo/3rdparty/markupsafe 1
-curl_tar "https://github.com/fastfloat/fast_float/archive/refs/tags/v${fast_float_tag}.tar.gz" placebo/3rdparty/fast_float 1
+
+# renovate: datasource=github-releases depName=pallets/jinja
+_tag='3.1.4'
+curl_tar "https://github.com/pallets/jinja/archive/refs/tags/${_tag}.tar.gz" placebo/3rdparty/jinja 1
+
+# renovate: datasource=github-releases depName=pallets/markupsafe
+_tag='2.1.5'
+curl_tar "https://github.com/pallets/markupsafe/archive/refs/tags/${_tag}.tar.gz" placebo/3rdparty/markupsafe 1
+
+# renovate: datasource=github-releases depName=fastfloat/fast_float
+_tag='6.1.1'
+curl_tar "https://github.com/fastfloat/fast_float/archive/refs/tags/v${_tag}.tar.gz" placebo/3rdparty/fast_float 1
 
 # Remove some superfluous files
 rm -rf placebo/{.*,docs,demos}

@@ -7,7 +7,7 @@ case "$TARGET" in
     ;;
 esac
 
-# renovate: datasource=github-releases depName=KhronosGroup/SPIRV-Cross
+# renovate: datasource=github-tags depName=KhronosGroup/SPIRV-Cross versioning=semver-coerced
 _tag='1.4.309.0'
 
 # === Vulkan Headers ===
