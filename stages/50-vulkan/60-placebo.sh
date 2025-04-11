@@ -13,9 +13,9 @@ mkdir -p placebo
 curl_tar 'https://github.com/haasn/libplacebo/archive/refs/tags/v7.349.0.tar.gz' placebo 1
 
 # Third party deps
-curl_tar 'https://github.com/pallets/jinja/archive/refs/tags/3.1.4.tar.gz' placebo/3rdparty/jinja 1
-curl_tar 'https://github.com/pallets/markupsafe/archive/refs/tags/2.1.5.tar.gz' placebo/3rdparty/markupsafe 1
-curl_tar 'https://github.com/fastfloat/fast_float/archive/refs/tags/v6.1.1.tar.gz' placebo/3rdparty/fast_float 1
+curl_tar 'https://github.com/pallets/jinja/archive/refs/tags/3.1.6.tar.gz' placebo/3rdparty/jinja 1
+curl_tar 'https://github.com/pallets/markupsafe/archive/refs/tags/3.0.2.tar.gz' placebo/3rdparty/markupsafe 1
+curl_tar 'https://github.com/fastfloat/fast_float/archive/refs/tags/v8.0.2.tar.gz' placebo/3rdparty/fast_float 1
 
 # Remove some superfluous files
 rm -rf placebo/{.*,docs,demos}

@@ -18,9 +18,7 @@ mkdir -p id3tag/build
 cd id3tag/build
 
 echo "Build id3tag..."
-cmake \
-  -DBUILD_SHARED_LIBS=Off \
-  ..
+cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
 
 ninja -j"$(nproc)"
 
