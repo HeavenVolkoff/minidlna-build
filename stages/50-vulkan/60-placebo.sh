@@ -21,7 +21,7 @@ _tag='3.1.6'
 curl_tar "https://github.com/pallets/jinja/archive/refs/tags/${_tag}.tar.gz" placebo/3rdparty/jinja 1
 
 # renovate: datasource=github-releases depName=pallets/markupsafe
-_tag='2.1.5'
+_tag='3.0.2'
 curl_tar "https://github.com/pallets/markupsafe/archive/refs/tags/${_tag}.tar.gz" placebo/3rdparty/markupsafe 1
 
 # renovate: datasource=github-releases depName=fastfloat/fast_float
