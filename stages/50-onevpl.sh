@@ -42,3 +42,5 @@ cmake \
 ninja -j"$(nproc)"
 
 ninja install
+
+echo "Libs.private: -lstdc++" >> "${PREFIX}/lib/pkgconfig/vpl.pc"
