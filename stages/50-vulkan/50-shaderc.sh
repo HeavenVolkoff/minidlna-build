@@ -11,7 +11,7 @@ echo "Download shaderc..."
 mkdir -p shaderc/third_party/{glslang,spirv-headers,spirv-tools}
 
 # renovate: depName=https://github.com/google/shaderc.git branch=known-good
-_commit='8ce49ebab88d35046e8076bd3bc5c9b34f744bd1'
+_commit='6f54d48630433cf918dfb98a89a09ea9a01669bf'
 
 # All the version for the main package and third-party deps must match what is here:
 while IFS=' = ' read -r repo commit; do
