@@ -11,7 +11,7 @@ echo "Download placebo..."
 mkdir -p placebo
 
 # renovate: datasource=github-releases depName=haasn/libplacebo
-_tag='7.349.0'
+_tag='7.351.0'
 curl_tar "https://github.com/haasn/libplacebo/archive/refs/tags/v${_tag}.tar.gz" placebo 1
 
 # Third party deps
