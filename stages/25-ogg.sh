@@ -4,7 +4,7 @@ echo "Download ogg..."
 mkdir -p ogg
 
 # renovate: datasource=github-releases depName=xiph/ogg versioning=semver-coerced
-_tag='1.3.5'
+_tag='1.3.6'
 
 curl_tar "https://github.com/xiph/ogg/releases/download/v${_tag}/libogg-${_tag}.tar.gz" ogg 1
 
