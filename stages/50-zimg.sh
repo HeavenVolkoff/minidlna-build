@@ -4,7 +4,7 @@ echo "Download zimg..."
 mkdir -p zimg
 
 # renovate: datasource=github-releases depName=sekrit-twc/zimg
-_tag='3.0.5'
+_tag='3.0.6'
 
 curl_tar "https://github.com/sekrit-twc/zimg/archive/refs/tags/release-${_tag}.tar.gz" zimg 1
 
