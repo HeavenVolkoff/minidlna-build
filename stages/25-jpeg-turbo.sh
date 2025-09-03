@@ -4,7 +4,7 @@ echo "Download jpeg-turbo..."
 mkdir -p jpeg-turbo
 
 # renovate: datasource=github-releases depName=libjpeg-turbo/libjpeg-turbo
-_tag='3.1.1'
+_tag='3.1.2'
 
 curl_tar "https://github.com/libjpeg-turbo/libjpeg-turbo/archive/refs/tags/${_tag}.tar.gz" jpeg-turbo 1
 
