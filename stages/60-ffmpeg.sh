@@ -4,7 +4,7 @@ echo "Download ffmpeg..."
 mkdir -p ffmpeg
 
 # renovate: datasource=github-tags depName=FFmpeg/FFmpeg versioning=semver-coerced
-_tag='7.1.1'
+_tag='7.1.2'
 
 curl_tar "https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n${_tag}.tar.gz" ffmpeg 1
 
