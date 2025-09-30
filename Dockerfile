@@ -14,7 +14,7 @@ ARG MACOS_SDK_VERSION='14.0'
 
 #--
 
-FROM debian:trixie@sha256:9dfe31addfd4b3cec207690f146f81b0df1b404e2ca08ecd3f6fe29dabf0e455 AS build-base
+FROM debian:trixie@sha256:fd8f5a1df07b5195613e4b9a0b6a947d3772a151b81975db27d47f093f60c6e6 AS build-base
 
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
