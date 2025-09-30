@@ -9,7 +9,7 @@ ARG ZIG_VERSION='0.14.0'
 # renovate: datasource=github-releases depName=mesonbuild/meson
 ARG MESON_VERSION='1.9.1'
 # renovate: datasource=github-releases depName=Kitware/CMake
-ARG CMAKE_VERSION='4.1.1'
+ARG CMAKE_VERSION='4.1.2'
 ARG MACOS_SDK_VERSION='14.0'
 
 #--
