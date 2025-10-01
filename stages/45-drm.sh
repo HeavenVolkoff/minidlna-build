@@ -12,7 +12,7 @@ echo "Download drm..."
 mkdir -p drm
 
 # renovate: datasource=gitlab-tags depName=mesa/drm registryUrl=https://gitlab.freedesktop.org
-_tag='2.4.125'
+_tag='2.4.126'
 
 curl_tar "https://dri.freedesktop.org/libdrm/libdrm-${_tag}.tar.xz" drm 1
 
