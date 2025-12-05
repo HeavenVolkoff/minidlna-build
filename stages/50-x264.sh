@@ -4,7 +4,7 @@ echo "Download x264..."
 mkdir -p x264
 
 # renovate: depName=https://code.videolan.org/videolan/x264.git
-_commit='373697b467f7cd0af88f1e9e32d4f10540df4687'
+_commit='0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee'
 
 # Using master due to aarch64 improvements
 curl_tar "https://code.videolan.org/videolan/x264/-/archive/${_commit}/x264.tar.bz2" x264 1
