@@ -63,14 +63,14 @@ jobs:
           tar -cJf "minidlna-${{ matrix.settings.target }}.tar.xz" -C out .
 
       - name: Publish minidlna
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: minidlna-${{ matrix.settings.target }}
           path: minidlna-${{ matrix.settings.target }}.tar.xz
           if-no-files-found: error
 
       - name: Publish built source
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: minidlna-${{ matrix.settings.target }}-src
           path: minidlna-${{ matrix.settings.target }}-src.tar.xz
@@ -102,7 +102,7 @@ jobs:
           platforms: linux/arm64
 
       - name: Download artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: minidlna-${{ matrix.settings.target }}
 
@@ -145,7 +145,7 @@ jobs:
       contents: write
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
