@@ -4,7 +4,7 @@ echo "Download lzma..."
 mkdir -p lzma
 
 # renovate: datasource=github-releases depName=tukaani-project/xz
-_tag='5.8.1'
+_tag='5.8.2'
 
 curl_tar "https://github.com/tukaani-project/xz/releases/download/v${_tag}/xz-${_tag}.tar.xz" lzma 1
 
