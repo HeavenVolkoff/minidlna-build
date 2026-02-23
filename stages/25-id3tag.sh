@@ -4,7 +4,7 @@ echo "Download id3tag..."
 mkdir -p id3tag
 
 # renovate: datasource=git-tags depName=https://codeberg.org/tenacityteam/libid3tag.git
-_tag='0.16.3'
+_tag='0.16.4'
 
 curl_tar "https://codeberg.org/tenacityteam/libid3tag/archive/${_tag}.tar.gz" id3tag 1
 
